@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dbCANary Flasher (beta)</title>
+<meta name="description" content="Flash dbCANary firmware from a browser tab over the unit's USB-C port. Bundled releases or your own build; nothing is uploaded.">
+<meta property="og:title" content="dbCANary Flasher (beta)">
+<meta property="og:description" content="Flash dbCANary firmware from a browser tab over USB-C. No toolchain, nothing uploaded.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://stoatworks-labs.com/thumbs/dbcanary-flasher.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<script type="module" src="/src/main.ts"></script>
+</head>
+<body>
+<main>
+  <header>
+    <h1>dbCANary Flasher <span class="tag">beta</span></h1>
+    <p class="sub">Put firmware on a dbCANary over its USB-C port, straight from this tab. The images are
+      checked here and written by your browser. Nothing is uploaded anywhere.</p>
+  </header>
+
+  <div id="no-serial" class="banner err" hidden>
+    <strong>This browser cannot reach a USB serial port.</strong>
+    Web Serial is in desktop Chrome, Edge and Opera. Safari, Firefox and phones do not have it.
+  </div>
+
+  <div class="banner">
+    <strong>Beta.</strong> The bundled images are built from the dbCANary source and checked before
+    anything is written. This page has not yet flashed a unit end to end. If a flash fails half way, the unit
+    is not bricked. The ESP32-S3's boot ROM cannot be overwritten, so hold <b>BOOT</b>, tap <b>EN</b> and
+    flash again.
+  </div>
+
+  <section class="panel" id="connect-panel">
+    <h2>1 · Connect the unit</h2>
+    <ol class="steps">
+      <li>Plug the unit's <b>USB-C</b> port into this computer. That powers it too.</li>
+      <li>Press <b>Connect</b> and pick <span class="mono">USB JTAG/serial debug unit</span> (Espressif, 303a:1001).</li>
+    </ol>
+    <details class="hint-box">
+      <summary>No port listed, or it will not connect?</summary>
+      <p>A unit running the <b>USB network</b> firmware turns its USB-C port into a network adapter
+        8 seconds after it boots, and from then on there is no serial port to find. Either press Connect
+        within those 8 seconds of plugging it in, or put it in download mode:</p>
+      <ol>
+        <li>Hold <b>BOOT</b> (SW302).</li>
+        <li>Tap <b>EN</b> (SW301).</li>
+        <li>Release <b>BOOT</b> and press Connect.</li>
+      </ol>
+      <p>In download mode the unit stays put until it is flashed or reset, so there is no rush.</p>
+    </details>
+    <div class="row">
+      <button id="connect">Connect</button>
+      <button id="disconnect" class="ghost" hidden>Disconnect</button>
+      <label class="check"><input type="checkbox" id="any-port"> show every serial port</label>
+    </div>
+    <table id="device" class="kv" hidden></table>
+  </section>
+
+  <section class="panel" id="firmware-panel">
+    <h2>2 · Choose firmware</h2>
+    <div class="seg" role="tablist">
+      <button role="tab" id="tab-release" aria-selected="true">Release</button>
+      <button role="tab" id="tab-custom" aria-selected="false">Your own build</button>
+    </div>
+
+    <div id="pane-release">
+      <label class="field" for="release">Release</label>
+      <select id="release"></select>
+      <p class="hint" id="release-meta"></p>
+      <div id="variants" class="cards"></div>
+    </div>
+
+    <div id="pane-custom" hidden>
+      <label class="field" for="files">Image files</label>
+      <input type="file" id="files" multiple accept=".bin,application/octet-stream">
+      <p class="hint">From an ESP-IDF build directory: <code>bootloader/bootloader.bin</code>,
+        <code>partition_table/partition-table.bin</code>, <code>ota_data_initial.bin</code> and
+        <code>dbcanary.bin</code>. Or just <code>dbcanary.bin</code> to replace the app on its own.
+        Each file is identified by its contents, not its name, and put at the offset its kind belongs at.</p>
+      <label class="check"><input type="checkbox" id="allow-foreign"> allow an app that is not a dbCANary build</label>
+    </div>
+
+    <table id="plan" class="parts" hidden>
+      <thead><tr><th>Part</th><th>Offset</th><th>Size</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p id="plan-notes" class="hint"></p>
+  </section>
+
+  <section class="panel" id="flash-panel">
+    <h2>3 · Flash</h2>
+    <label class="check"><input type="checkbox" id="erase-all"> erase the whole flash first</label>
+    <p class="hint">Off: the unit keeps its settings (name, port, LAN address) and its stored crash log.
+      On: it comes back on factory defaults. Use this to recover a unit whose settings or OTA state
+      you do not trust.</p>
+    <div class="row">
+      <button id="flash" disabled>Flash</button>
+      <span id="flash-why" class="dim"></span>
+    </div>
+    <div id="progress" class="progress" hidden><div></div></div>
+    <p id="status" class="status" role="status"></p>
+  </section>
+
+  <section class="panel">
+    <h2>Serial console</h2>
+    <p class="hint">Watch the unit boot. Opening the port resets the unit. On the USB network firmware the
+      console goes quiet 8 seconds after boot, when the port becomes a network adapter.</p>
+    <div class="row">
+      <button id="console-open" class="ghost">Open console</button>
+      <button id="console-close" class="ghost" hidden>Close</button>
+      <button id="console-clear" class="ghost">Clear</button>
+    </div>
+    <pre id="console" class="term"></pre>
+  </section>
+
+  <details class="panel log-panel">
+    <summary>Flasher log</summary>
+    <pre id="log" class="term"></pre>
+  </details>
+
+  <footer>
+    <button type="button" class="linkish" data-stoatworks-about>About</button>
+    · <a href="https://stoatworks-labs.com/hardware/dbcanary/">dbCANary</a>
+    · <span id="version"></span>
+  </footer>
+</main>
+<!--
+  About dialog. Both files are vendored from stoatworks-backend/about and
+  generated by its sync-about.py — edit them there, never here. Classic +
+  defer: about-data.js only sets defaults, so it and the app's own startup
+  can load in either order.
+-->
+<script src="/about-data.js" defer></script>
+<script src="/about.js" defer></script>
+<!--
+  Support footer. Vendored from stoatworks-backend/support-footer — edit it
+  there and re-run the sync, never here. Classic + defer on purpose: it reads
+  its config off this tag, and document.currentScript is null in a module.
+-->
+<script
+  src="/support-footer.js"
+  defer
+  data-app="dbCANary Flasher"
+  data-repo="https://github.com/stoatworks-labs/dbcanary-flasher"
+  data-note="It runs entirely in your browser. The firmware goes from this page to the unit over USB and nowhere else."
+></script>
+</body>
+</html>

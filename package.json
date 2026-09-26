@@ -1,0 +1,25 @@
+{
+  "name": "dbcanary-flasher",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Flash dbCANary firmware from a browser tab over USB — bundled releases or your own build, no toolchain.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "import-firmware": "node scripts/import-firmware.mjs"
+  },
+  "dependencies": {
+    "esptool-js": "^0.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "@types/w3c-web-serial": "^1.0.8",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^4.1.11"
+  }
+}

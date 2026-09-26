@@ -1,0 +1,34 @@
+name: ci
+
+# A green build cannot tell you that the site renders, so after the tests and
+# the build this loads the built page in a real browser and fails on any
+# runtime error.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Lockfile matches manifest
+        run: npm ls --all >/dev/null
+      - name: Test
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Smoke-check the built site
+        uses: stoatworks-labs/smoke-check@v1
+        with:
+          dir: dist
+          root: body
+          min-text: "40"
