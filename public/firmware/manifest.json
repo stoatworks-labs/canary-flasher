@@ -1,9 +1,9 @@
 {
   "releases": [
     {
-      "id": "main-4bd1ac5",
+      "id": "main-60a871f",
       "date": "2026-09-26",
-      "commit": "4bd1ac5d696b5d2d1cec7e6bbe29b152e3bb425d",
+      "commit": "60a871f2735a16060f3b8dc453de0e84d785464b",
       "variants": [
         {
           "id": "standard",
@@ -11,9 +11,9 @@
           "summary": "Ethernet bridge only. The USB-C port stays a serial console, so the next flash needs no buttons.",
           "recommended": true,
           "app": {
-            "version": "main-4bd1ac5",
+            "version": "main-60a871f",
             "project": "dbcanary",
-            "time": "12:50:49",
+            "time": "14:44:55",
             "date": "Sep 26 2026",
             "idfVersion": "v5.5.5"
           },
@@ -21,30 +21,30 @@
             {
               "name": "bootloader",
               "offset": 0,
-              "path": "main-4bd1ac5/standard/bootloader.bin",
+              "path": "main-60a871f/standard/bootloader.bin",
               "size": 20928,
-              "sha256": "957c49202959b2d2eed1e6cb7723afcf91cbedeb48368f3637cb44c65a018d98"
+              "sha256": "dbaf7fe32594bb2487cbf2b1a50d3c1d6d9c0ed0d7810131e1ea6f45d33fe681"
             },
             {
               "name": "partition table",
               "offset": 32768,
-              "path": "main-4bd1ac5/standard/partition-table.bin",
+              "path": "main-60a871f/standard/partition-table.bin",
               "size": 3072,
               "sha256": "1de2d87ee561e99e9e35af13bd6cc29822bda68c1d28562477a32cbe5c4314c8"
             },
             {
               "name": "otadata",
               "offset": 61440,
-              "path": "main-4bd1ac5/standard/ota_data_initial.bin",
+              "path": "main-60a871f/standard/ota_data_initial.bin",
               "size": 8192,
               "sha256": "7d2c7ac4888bfd75cd5f56e8d61f69595121183afc81556c876732fd3782c62f"
             },
             {
               "name": "app",
               "offset": 131072,
-              "path": "main-4bd1ac5/standard/dbcanary.bin",
-              "size": 461136,
-              "sha256": "7f877231a0d3f5c67d9bfb812373e2ad1ae102067dfe22281604f91385e274b8"
+              "path": "main-60a871f/standard/dbcanary.bin",
+              "size": 461168,
+              "sha256": "7e3d2cef3ae06b048cb0fa45e61ba0a404212892dd0a91ee722e7b15e5faf35d"
             }
           ]
         },
@@ -53,9 +53,9 @@
           "name": "USB network + config page",
           "summary": "Also a USB network adapter at 192.168.7.1 with the settings page. After 8 s the USB-C port stops being a serial port, so reflashing needs BOOT held while EN is tapped.",
           "app": {
-            "version": "main-4bd1ac5",
+            "version": "main-60a871f",
             "project": "dbcanary",
-            "time": "12:51:08",
+            "time": "14:45:15",
             "date": "Sep 26 2026",
             "idfVersion": "v5.5.5"
           },
@@ -63,30 +63,30 @@
             {
               "name": "bootloader",
               "offset": 0,
-              "path": "main-4bd1ac5/usb-network/bootloader.bin",
+              "path": "main-60a871f/usb-network/bootloader.bin",
               "size": 20928,
-              "sha256": "c3a144e491dff8ad18f4437acd31ce708be6a4c46a74693da277f23ee6acea4e"
+              "sha256": "f0ce2c9e0e9878d5b293e382784261f0464923fe169eb2114a91cba75e727df7"
             },
             {
               "name": "partition table",
               "offset": 32768,
-              "path": "main-4bd1ac5/usb-network/partition-table.bin",
+              "path": "main-60a871f/usb-network/partition-table.bin",
               "size": 3072,
               "sha256": "1de2d87ee561e99e9e35af13bd6cc29822bda68c1d28562477a32cbe5c4314c8"
             },
             {
               "name": "otadata",
               "offset": 61440,
-              "path": "main-4bd1ac5/usb-network/ota_data_initial.bin",
+              "path": "main-60a871f/usb-network/ota_data_initial.bin",
               "size": 8192,
               "sha256": "7d2c7ac4888bfd75cd5f56e8d61f69595121183afc81556c876732fd3782c62f"
             },
             {
               "name": "app",
               "offset": 131072,
-              "path": "main-4bd1ac5/usb-network/dbcanary.bin",
-              "size": 598352,
-              "sha256": "d201c10df8c055db58868b24398285b7e200f0046846552c79f49c6d1ebcf0d0"
+              "path": "main-60a871f/usb-network/dbcanary.bin",
+              "size": 598720,
+              "sha256": "05e9ae5bf28dc6ee25df6d2c05e7120daee6b8171f5eda2dd55eaab9cb14028c"
             }
           ]
         }
