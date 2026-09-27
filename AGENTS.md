@@ -1,11 +1,11 @@
-# AGENTS.md — dbCANary Flasher
+# AGENTS.md — CANary Flasher
 
 Orientation for an AI assistant (or a new human) picking this up cold. `CLAUDE.md` is the
 command reference.
 
 ## 1. What this is
 
-A static page that flashes dbCANary firmware over Web Serial with esptool-js. Vite +
+A static page that flashes CANary firmware over Web Serial with esptool-js. Vite +
 TypeScript, no framework, no backend. Firmware images are bundled under `public/firmware/`
 and served beside the page.
 
@@ -34,13 +34,13 @@ test/             vitest, against the real bundled images
   header would make the MD5 verify compare against bytes nobody built.
 - **A lone app at 0x20000 gets a blank otadata** (`withOtadataReset`). Without it, a unit that
   last updated over the air keeps booting ota_1, and the flash looks like it did nothing.
-- **The ota_1 address (0x1F0000) is hard-coded** in `Session.describe()` from dbCANary's
+- **The ota_1 address (0x1F0000) is hard-coded** in `Session.describe()` from CANary's
   partition table. If that table ever changes, change it there too.
 
 ## 4. Naming
 
 Public text (the page, the README, the website entry) never names the third-party product
-the dbCANary stands in for, or its control application. Say "the control application".
+the CANary stands in for, or its control application. Say "the control application".
 The firmware binaries' own log strings are not page text.
 
 ## 5. Traps

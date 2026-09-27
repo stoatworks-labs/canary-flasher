@@ -1,4 +1,4 @@
-# CLAUDE.md — dbCANary Flasher
+# CLAUDE.md — CANary Flasher
 
 Command reference. Read [AGENTS.md](AGENTS.md) first for the model and the traps.
 
@@ -14,7 +14,7 @@ npx tsc -b           # typecheck only
 
 ## Bundling a firmware release
 
-Build from a clean export of the dbcanary repo (it is private, at `~/hardware/audio/dbcanary`),
+Build from a clean export of the canary repo (it is private, at `~/hardware/audio/dbcanary`),
 with a `version.txt` so the app descriptor carries the release id:
 
 ```bash

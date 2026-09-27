@@ -1,9 +1,9 @@
 {
-  "name": "dbcanary-flasher",
+  "name": "canary-flasher",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Flash dbCANary firmware from a browser tab over USB — bundled releases or your own build, no toolchain.",
+  "description": "Flash CANary firmware from a browser tab over USB — bundled releases or your own build, no toolchain.",
   "license": "MIT",
   "scripts": {
     "dev": "vite",

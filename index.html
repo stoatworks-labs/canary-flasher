@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>dbCANary Flasher (beta)</title>
-<meta name="description" content="Flash dbCANary firmware from a browser tab over the unit's USB-C port. Bundled releases or your own build; nothing is uploaded.">
-<meta property="og:title" content="dbCANary Flasher (beta)">
-<meta property="og:description" content="Flash dbCANary firmware from a browser tab over USB-C. No toolchain, nothing uploaded.">
+<title>CANary Flasher (beta)</title>
+<meta name="description" content="Flash CANary firmware from a browser tab over the unit's USB-C port. Bundled releases or your own build; nothing is uploaded.">
+<meta property="og:title" content="CANary Flasher (beta)">
+<meta property="og:description" content="Flash CANary firmware from a browser tab over USB-C. No toolchain, nothing uploaded.">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://stoatworks-labs.com/thumbs/dbcanary-flasher.png">
+<meta property="og:image" content="https://stoatworks-labs.com/thumbs/canary-flasher.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <script type="module" src="/src/main.ts"></script>
@@ -16,8 +16,8 @@
 <body>
 <main>
   <header>
-    <h1>dbCANary Flasher <span class="tag">beta</span></h1>
-    <p class="sub">Put firmware on a dbCANary over its USB-C port, straight from this tab. The images are
+    <h1>CANary Flasher <span class="tag">beta</span></h1>
+    <p class="sub">Put firmware on a CANary over its USB-C port, straight from this tab. The images are
       checked here and written by your browser. Nothing is uploaded anywhere.</p>
   </header>
 
@@ -27,7 +27,7 @@
   </div>
 
   <div class="banner">
-    <strong>Beta.</strong> The bundled images are built from the dbCANary source and checked before
+    <strong>Beta.</strong> The bundled images are built from the CANary source and checked before
     anything is written. This page has not yet flashed a unit end to end. If a flash fails half way, the unit
     is not bricked. The ESP32-S3's boot ROM cannot be overwritten, so hold <b>BOOT</b>, tap <b>EN</b> and
     flash again.
@@ -78,9 +78,9 @@
       <input type="file" id="files" multiple accept=".bin,application/octet-stream">
       <p class="hint">From an ESP-IDF build directory: <code>bootloader/bootloader.bin</code>,
         <code>partition_table/partition-table.bin</code>, <code>ota_data_initial.bin</code> and
-        <code>dbcanary.bin</code>. Or just <code>dbcanary.bin</code> to replace the app on its own.
+        <code>canary.bin</code>. Or just <code>canary.bin</code> to replace the app on its own.
         Each file is identified by its contents, not its name, and put at the offset its kind belongs at.</p>
-      <label class="check"><input type="checkbox" id="allow-foreign"> allow an app that is not a dbCANary build</label>
+      <label class="check"><input type="checkbox" id="allow-foreign"> allow an app that is not a CANary build</label>
     </div>
 
     <table id="plan" class="parts" hidden>
@@ -123,7 +123,7 @@
 
   <footer>
     <button type="button" class="linkish" data-stoatworks-about>About</button>
-    · <a href="https://stoatworks-labs.com/hardware/dbcanary/">dbCANary</a>
+    · <a href="https://stoatworks-labs.com/hardware/canary/">CANary</a>
     · <span id="version"></span>
   </footer>
 </main>
@@ -143,8 +143,8 @@
 <script
   src="/support-footer.js"
   defer
-  data-app="dbCANary Flasher"
-  data-repo="https://github.com/stoatworks-labs/dbcanary-flasher"
+  data-app="CANary Flasher"
+  data-repo="https://github.com/stoatworks-labs/canary-flasher"
   data-note="It runs entirely in your browser. The firmware goes from this page to the unit over USB and nowhere else."
 ></script>
 </body>

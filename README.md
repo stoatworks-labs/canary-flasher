@@ -1,11 +1,11 @@
 > **AI-assisted project.** This codebase was created with [Claude Code](https://claude.com/claude-code).
 > **Not yet proven on a unit.** The image checks, the manifest and the MD5 used to verify each write
 > are covered by tests against the real bundled images. The page has been driven in a browser up to
-> the point of connecting. **No dbCANary has been flashed from it yet.**
+> the point of connecting. **No CANary has been flashed from it yet.**
 
-# dbCANary Flasher
+# CANary Flasher
 
-A static web page that puts firmware on a [dbCANary](https://stoatworks-labs.com/hardware/dbcanary/)
+A static web page that puts firmware on a [CANary](https://stoatworks-labs.com/hardware/canary/)
 over its USB-C port, straight from a browser tab. No toolchain, no driver, no Python.
 
 Live at **<https://dbcanary-flasher.stoatworks-labs.com>**. It needs Web Serial: desktop Chrome, Edge or Opera.
@@ -17,7 +17,7 @@ Live at **<https://dbcanary-flasher.stoatworks-labs.com>**. It needs Web Serial:
 | | |
 |---|---|
 | **Flash a release** | Pick a bundled release and a variant (*Standard*, or *USB network + config page*). Every part is checked against its published SHA-256 checksum before it is shown. |
-| **Flash your own build** | Choose the `.bin` files from an ESP-IDF build directory. Each is identified by its **contents**, not its name, and put at the offset its kind belongs at. A lone `dbcanary.bin` gets a blank otadata written beside it, so the unit boots what you just wrote rather than whatever it last updated to over the air. |
+| **Flash your own build** | Choose the `.bin` files from an ESP-IDF build directory. Each is identified by its **contents**, not its name, and put at the offset its kind belongs at. A lone `canary.bin` gets a blank otadata written beside it, so the unit boots what you just wrote rather than whatever it last updated to over the air. |
 | **Say what the unit is running** | On connect it reads the chip, MAC and flash size, and also otadata and the active slot's app descriptor, so you see the version before you overwrite it. |
 | **Serial console** | Watch the unit boot after flashing. |
 
@@ -28,7 +28,7 @@ run over every bundled image by the test suite:
 
 - a chip other than an ESP32-S3, or less than 8 MB of flash;
 - an image built for another chip;
-- an app whose project name is not `dbcanary`, unless you tick the override;
+- an app whose project name is not `canary` (or `dbcanary`, from before the rename), unless you tick the override;
 - a bootloader anywhere but `0x0`, or an app below `0x20000`;
 - overlapping writes, offsets off a 4 KB sector, or anything past the end of flash.
 
@@ -52,7 +52,13 @@ node scripts/import-firmware.ts --build <idf build dir> --release main-<sha> \
   --variant standard --name "Standard" --summary "…" --commit <full sha> --recommended
 ```
 
-The firmware images are built from the dbCANary source and are **not** covered by this repository's
+Two releases are bundled. **main-ff4110d** (the default) is the first under the CANary name:
+R1 lists a unit as `CANary` rather than `db-70`, and the USB adapter is called CANary. It
+differs from the one below only in names and has not yet been flashed onto a unit.
+**main-60a871f** is the last release proven on a board (Ethernet and USB, acceptance test
+19/19); its app still carries the pre-rename project name `dbcanary`, which the page accepts.
+
+The firmware images are built from the CANary source and are **not** covered by this repository's
 MIT licence, which applies to the flasher itself.
 
 ## Develop

@@ -9,7 +9,7 @@ export interface Release {
   /** Also the directory under public/firmware/. */
   id: string;
   date: string;
-  /** Full commit of the dbcanary repo the images were built from. */
+  /** Full commit of the canary repo the images were built from. */
   commit: string;
   variants: Variant[];
 }
@@ -53,7 +53,8 @@ export function validateManifest(m: Manifest): string[] {
       if (vids.has(v.id)) e.push(`${vat}: duplicate variant`);
       vids.add(v.id);
       if (!v.name || !v.summary) e.push(`${vat}: needs a name and a summary`);
-      if (v.app?.project !== "dbcanary") e.push(`${vat}: app project is ${v.app?.project}`);
+      // "dbcanary" is the pre-rename project name, still carried by older bundled releases
+      if (!["canary", "dbcanary"].includes(v.app?.project ?? "")) e.push(`${vat}: app project is ${v.app?.project}`);
       const offsets = (v.parts ?? []).map((p) => p.offset);
       for (const need of [0x0, 0x8000, 0xf000, 0x20000]) {
         if (!offsets.includes(need)) e.push(`${vat}: nothing at 0x${need.toString(16)}`);

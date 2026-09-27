@@ -1,4 +1,4 @@
-// Bundle an ESP-IDF build of dbCANary into public/firmware/ and the manifest.
+// Bundle an ESP-IDF build of CANary into public/firmware/ and the manifest.
 //
 //   node scripts/import-firmware.ts --build <idf build dir> --release <id> \
 //        --variant <id> --name "<label>" --summary "<one line>" \

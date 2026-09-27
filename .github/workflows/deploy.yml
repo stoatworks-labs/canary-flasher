@@ -47,7 +47,7 @@ jobs:
             echo "::error::CLOUDFLARE_API_TOKEN is not set on this repository, so the"
             echo "::error::site cannot be deployed. The keychain entry cf-run uses"
             echo "::error::(service 'stoatworks-cloudflare') holds the same token:"
-            echo "::error::  gh secret set CLOUDFLARE_API_TOKEN --repo stoatworks-labs/dbcanary-flasher"
+            echo "::error::  gh secret set CLOUDFLARE_API_TOKEN --repo stoatworks-labs/canary-flasher"
             exit 1
           fi
           echo "token present - ok"

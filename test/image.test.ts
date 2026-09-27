@@ -99,8 +99,15 @@ describe("checkPlan refuses", () => {
     const p = good();
     const app = p.find((w) => w.offset === OFFSETS.app)!;
     app.data.set(new TextEncoder().encode("blinky\0\0"), 32 + 48);
-    expect(checkPlan(p, { flashBytes: MB8 }).join()).toMatch(/"blinky", not a dbCANary/);
+    expect(checkPlan(p, { flashBytes: MB8 }).join()).toMatch(/"blinky", not a CANary/);
     expect(checkPlan(p, { flashBytes: MB8, allowForeign: true })).toEqual([]);
+  });
+
+  it("an app built before the rename, as dbcanary, is still ours", () => {
+    const p = good();
+    const app = p.find((w) => w.offset === OFFSETS.app)!;
+    app.data.set(new TextEncoder().encode("dbcanary\0"), 32 + 48);
+    expect(checkPlan(p, { flashBytes: MB8 })).toEqual([]);
   });
 
   it("overlapping writes", () => {

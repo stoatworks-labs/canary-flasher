@@ -93,7 +93,7 @@ function renderDevice() {
   row("Chip", el("span", { className: chipOk ? "good" : "bad" }, device.chip));
   row("MAC", device.mac);
   const flashOk = device.flashBytes >= 8 * 1024 * 1024;
-  row("Flash", el("span", { className: flashOk ? "" : "bad" }, device.flashLabel + (flashOk ? "" : " (a dbCANary has 8MB)")));
+  row("Flash", el("span", { className: flashOk ? "" : "bad" }, device.flashLabel + (flashOk ? "" : " (a CANary has 8MB)")));
   const r = device.running;
   row("Boots", !r ? "unknown (blank or unreadable)"
     : r.app ? `${r.app.project} ${r.app.version} from ota_${r.slot}, built ${r.app.date}`
@@ -134,7 +134,7 @@ async function loadManifest() {
 function renderVariants() {
   if (!manifest) return;
   const release = manifest.releases.find((r) => r.id === $<HTMLSelectElement>("release").value)!;
-  $("release-meta").textContent = `Built from dbcanary ${release.commit.slice(0, 7)} with ESP-IDF ${release.variants[0].app.idfVersion}.`;
+  $("release-meta").textContent = `Built from canary ${release.commit.slice(0, 7)} with ESP-IDF ${release.variants[0].app.idfVersion}.`;
   const keep = chosen?.release.id === release.id ? chosen.variant.id : null;
   const pick = release.variants.find((v) => v.id === keep) ?? release.variants.find((v) => v.recommended) ?? release.variants[0];
   $("variants").replaceChildren(...release.variants.map((v) => {

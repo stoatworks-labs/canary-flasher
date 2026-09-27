@@ -50,7 +50,7 @@ export class Session {
     try {
       const otadata = await this.loader.readFlash(OFFSETS.otadata, 0x2000);
       const { slot } = activeOtaSlot(otadata);
-      // ota_0 at 0x20000, ota_1 right after it — dbCANary's table since rev A.
+      // ota_0 at 0x20000, ota_1 right after it — CANary's table since rev A.
       const base = slot === 0 ? 0x20000 : 0x1f0000;
       const head = await this.loader.readFlash(base, 0x200);
       const info = identify(head);
@@ -66,7 +66,7 @@ export class Session {
     opts: { eraseAll: boolean; allowForeign: boolean; onProgress: (done: number, total: number) => void },
   ): Promise<void> {
     const info = await this.describe();
-    if (info.chip !== "ESP32-S3") throw new Error(`this is an ${info.chip}; a dbCANary is an ESP32-S3`);
+    if (info.chip !== "ESP32-S3") throw new Error(`this is an ${info.chip}; a CANary is an ESP32-S3`);
     const problems = checkPlan(writes, { flashBytes: info.flashBytes, allowForeign: opts.allowForeign });
     if (problems.length) throw new Error(problems.join("; "));
 

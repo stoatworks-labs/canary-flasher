@@ -138,9 +138,15 @@ export interface PlannedWrite {
 }
 
 /**
+ * The ESP-IDF project names a CANary app carries: "canary" since the rename
+ * (2026-09-27), "dbcanary" before it -- a unit's own older build is still ours.
+ */
+export const APP_PROJECTS = ["canary", "dbcanary"];
+
+/**
  * Everything that must be true before a set of writes goes near a unit. Returns
  * the reasons it must not, empty when it may. `allowForeign` lets an app that is
- * not a dbCANary build through — a deliberate override, never a default.
+ * not a CANary build through — a deliberate override, never a default.
  */
 export function checkPlan(
   writes: PlannedWrite[],
@@ -165,11 +171,11 @@ export function checkPlan(
     if (info.kind === "app" || info.kind === "bootloader") {
       if (info.chipId !== CHIP_ID_ESP32S3) {
         const chip = CHIP_NAMES[info.chipId] ?? `chip id ${info.chipId}`;
-        problems.push(`${w.name}: built for ${chip}, and a dbCANary is an ESP32-S3`);
+        problems.push(`${w.name}: built for ${chip}, and a CANary is an ESP32-S3`);
       }
     }
-    if (info.kind === "app" && info.app.project !== "dbcanary" && !opts.allowForeign) {
-      problems.push(`${w.name}: this is "${info.app.project}", not a dbCANary build`);
+    if (info.kind === "app" && !APP_PROJECTS.includes(info.app.project) && !opts.allowForeign) {
+      problems.push(`${w.name}: this is "${info.app.project}", not a CANary build`);
     }
     if (info.kind === "bootloader" && w.offset !== OFFSETS.bootloader) {
       problems.push(`${w.name}: a bootloader only boots from 0x0`);
