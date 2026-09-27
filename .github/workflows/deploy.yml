@@ -79,7 +79,7 @@ jobs:
           want=$(sed -n '1,/<\/head>/p' dist/index.html | shasum -a 256 | cut -d' ' -f1)
           echo "expecting the live <head> to hash to $want"
           for attempt in 1 2 3 4 5; do
-            got=$(curl -sS --max-time 30 "https://dbcanary-flasher.stoatworks-labs.com/" \
+            got=$(curl -sS --max-time 30 "https://canary-flasher.stoatworks-labs.com/" \
                   | sed -n '1,/<\/head>/p' | shasum -a 256 | cut -d' ' -f1 || true)
             if [ "$got" = "$want" ]; then
               echo "live site is serving this build (attempt $attempt)"
@@ -88,6 +88,6 @@ jobs:
             echo "not there yet, got $got — retrying in 10s (attempt $attempt)"
             sleep 10
           done
-          echo "::error::Deployed, but https://dbcanary-flasher.stoatworks-labs.com/ is still"
+          echo "::error::Deployed, but https://canary-flasher.stoatworks-labs.com/ is still"
           echo "::error::not serving this build's <head>. Check the Worker's routes."
           exit 1

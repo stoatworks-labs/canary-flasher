@@ -8,7 +8,7 @@
 A static web page that puts firmware on a [CANary](https://stoatworks-labs.com/hardware/canary/)
 over its USB-C port, straight from a browser tab. No toolchain, no driver, no Python.
 
-Live at **<https://dbcanary-flasher.stoatworks-labs.com>**. It needs Web Serial: desktop Chrome, Edge or Opera.
+Live at **<https://canary-flasher.stoatworks-labs.com>**. It needs Web Serial: desktop Chrome, Edge or Opera.
 
 ![The flasher with the latest release chosen and its four parts listed](docs/screenshots/flasher.png)
 

@@ -1,4 +1,4 @@
-# Cloudflare deployment for dbCANary Flasher.
+# Cloudflare deployment for CANary Flasher.
 #
 # A static-assets-only Worker: no server code. Built by the deploy workflow in
 # .github/workflows/deploy.yml (npm ci && npm run build), never by a Cloudflare
@@ -10,7 +10,10 @@
 # `public/_headers` is copied into dist/ by Vite and carries the CSP and the
 # immutable-cache rule for hashed assets; the assets runtime honours it.
 #
-# `name` must match the Cloudflare project.
+# `name` must match the Cloudflare project. It is still "dbcanary-flasher" after the
+# rename to CANary (2026-09-27): renaming the Worker would create a second one. Only the
+# custom domain moved, and the old one was detached to make room (the zone is at its
+# 100-custom-domain cap), so dbcanary-flasher.stoatworks-labs.com no longer resolves.
 
 name = "dbcanary-flasher"
 compatibility_date = "2026-07-30"
@@ -24,5 +27,5 @@ directory = "./dist"
 # custom domain can take over six minutes to resolve, longer than the
 # workflow's live-site check waits.
 [[routes]]
-pattern = "dbcanary-flasher.stoatworks-labs.com"
+pattern = "canary-flasher.stoatworks-labs.com"
 custom_domain = true
