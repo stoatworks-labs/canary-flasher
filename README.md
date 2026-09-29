@@ -1,4 +1,5 @@
-> **AI-assisted project.** This codebase was created with [Claude Code](https://claude.com/claude-code).
+> **AI-assisted project.** This codebase was created with [Claude](https://claude.com/claude-code)
+> (Anthropic), directed and reviewed by a human author.
 > **Not yet proven on a unit.** The image checks, the manifest and the MD5 used to verify each write
 > are covered by tests against the real bundled images. The page has been driven in a browser up to
 > the point of connecting. **No CANary has been flashed from it yet.**
