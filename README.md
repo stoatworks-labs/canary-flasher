@@ -72,3 +72,7 @@ npm run build    # tsc -b && vite build -> dist/
 ```
 
 Built on [esptool-js](https://github.com/espressif/esptool-js) (Apache-2.0).
+
+<!-- attributions:start -->
+This project is built on other people's work — see [ATTRIBUTIONS.md](ATTRIBUTIONS.md).
+<!-- attributions:end -->
