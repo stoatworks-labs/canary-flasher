@@ -14,7 +14,7 @@ npx tsc -b           # typecheck only
 
 ## Bundling a firmware release
 
-Build from a clean export of the canary repo (it is private, at `~/hardware/audio/dbcanary`),
+Build from a clean export of the private `canary-dev` repo (at `~/hardware/audio/dbcanary`),
 with a `version.txt` so the app descriptor carries the release id:
 
 ```bash
