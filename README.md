@@ -1,15 +1,16 @@
 > **AI-assisted project.** This codebase was created with [Claude](https://claude.com/claude-code)
 > (Anthropic), directed and reviewed by a human author.
-> **Not yet proven on a unit.** The image checks, the manifest and the MD5 used to verify each write
-> are covered by tests against the real bundled images. The page has been driven in a browser up to
-> the point of connecting. **No CANary has been flashed from it yet.**
+> **Not yet proven on a unit.** The image checks, the manifest and the MD5 that verifies each write
+> are covered by tests against the real bundled images. I've driven the page in a browser as far as
+> connecting, and no further. **No CANary has been flashed from it yet.**
 
 # CANary Flasher
 
 A static web page that puts firmware on a [CANary](https://stoatworks-labs.com/hardware/canary/)
-over its USB-C port, straight from a browser tab. No toolchain, no driver, no Python.
+over its USB-C port, straight from a browser tab. You don't need to install a toolchain, a driver
+or Python first.
 
-Live at **<https://canary-flasher.stoatworks-labs.com>**. It needs Web Serial: desktop Chrome, Edge or Opera.
+It's live at **<https://canary-flasher.stoatworks-labs.com>**. It needs Web Serial, which means desktop Chrome, Edge or Opera.
 
 ![The flasher with the latest release chosen and its four parts listed](docs/screenshots/flasher.png)
 
@@ -24,29 +25,29 @@ Live at **<https://canary-flasher.stoatworks-labs.com>**. It needs Web Serial: d
 
 ## What it refuses
 
-Checked in the page before anything is written (`checkPlan()` in [src/image.ts](src/image.ts)), and
-run over every bundled image by the test suite:
+The page checks all of this before it writes anything (`checkPlan()` in [src/image.ts](src/image.ts)),
+and the test suite runs the same checks over every bundled image:
 
 - a chip other than an ESP32-S3, or less than 8 MB of flash;
 - an image built for another chip;
-- an app whose project name is not `canary` (or `dbcanary`, from before the rename), unless you tick the override;
+- an app whose project name isn't `canary` (or `dbcanary`, from before the rename), unless you tick the override;
 - a bootloader anywhere but `0x0`, or an app below `0x20000`;
 - overlapping writes, offsets off a 4 KB sector, or anything past the end of flash.
 
-Every write is verified by esptool's MD5 read-back.
+Every write is then verified by esptool's MD5 read-back.
 
 ## If a unit will not connect
 
 A unit running the **USB network** firmware turns its USB-C port into a network adapter 8 s after
-boot. After that there is no serial port. Hold **BOOT**, tap **EN**, release **BOOT** and connect.
-The ESP32-S3's boot ROM cannot be overwritten, so a flash that fails half way is always recoverable
-this way.
+boot, and after that there's no serial port to talk to. Hold **BOOT**, tap **EN**, release **BOOT**
+and connect. The ESP32-S3's boot ROM can't be overwritten, so you can always recover a flash that
+fails half way like this.
 
 ## Bundled firmware
 
-`public/firmware/` holds release images and `manifest.json`. Only
-`scripts/import-firmware.ts` writes them. It reads a build's own `flasher_args.json`, so no offset is
-typed by hand, and it refuses anything the page would refuse:
+`public/firmware/` holds the release images and `manifest.json`, and only
+`scripts/import-firmware.ts` writes them. It reads a build's own `flasher_args.json`, so nobody types
+an offset by hand, and it refuses anything the page would refuse:
 
 ```bash
 node scripts/import-firmware.ts --build <idf build dir> --release main-<sha> \
@@ -54,12 +55,12 @@ node scripts/import-firmware.ts --build <idf build dir> --release main-<sha> \
 ```
 
 Two releases are bundled. **main-ff4110d** (the default) is the first under the CANary name:
-R1 lists a unit as `CANary` rather than `db-70`, and the USB adapter is called CANary. It
-differs from the one below only in names and has not yet been flashed onto a unit.
+R1 lists a unit as `CANary` rather than `db-70`, and the USB adapter is called CANary. It differs
+from the one below only in its names, and it hasn't been flashed onto a unit yet.
 **main-60a871f** is the last release proven on a board (Ethernet and USB, acceptance test
-19/19); its app still carries the pre-rename project name `dbcanary`, which the page accepts.
+19/19). Its app still carries the pre-rename project name `dbcanary`, which the page accepts.
 
-The firmware images are built from the CANary source and are **not** covered by this repository's
+The firmware images are built from the CANary source and **aren't** covered by this repository's
 MIT licence, which applies to the flasher itself.
 
 ## Develop
@@ -71,7 +72,7 @@ npm test         # vitest
 npm run build    # tsc -b && vite build -> dist/
 ```
 
-Built on [esptool-js](https://github.com/espressif/esptool-js) (Apache-2.0).
+It's built on [esptool-js](https://github.com/espressif/esptool-js) (Apache-2.0).
 
 <!-- attributions:start -->
 This project is built on other people's work — see [ATTRIBUTIONS.md](ATTRIBUTIONS.md).
