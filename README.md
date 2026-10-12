@@ -55,8 +55,9 @@ node scripts/import-firmware.ts --build <idf build dir> --release main-<sha> \
 ```
 
 Two releases are bundled. **main-ff4110d** (the default) is the first under the CANary name:
-R1 lists a unit as `CANary` rather than `db-70`, and the USB adapter is called CANary. It differs
-from the one below only in its names, and it hasn't been flashed onto a unit yet.
+a unit now shows up in the control application as `CANary` by default, and the USB adapter is
+called CANary too. It differs from the one below only in its names, and it hasn't been flashed
+onto a unit yet.
 **main-60a871f** is the last release proven on a board (Ethernet and USB, acceptance test
 19/19). Its app still carries the pre-rename project name `dbcanary`, which the page accepts.
 
