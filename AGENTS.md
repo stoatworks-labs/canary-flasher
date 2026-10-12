@@ -40,7 +40,10 @@ test/             vitest, against the real bundled images
 ## 4. Naming
 
 Public text (the page, the README, the website entry) never names the third-party product
-the CANary stands in for, or its control application. Say "the control application".
+the CANary stands in for, its model numbers, or its control application. That includes a
+model number hiding in a default device name. Say "the control application", and "the d&b
+amplifier ecosystem" where compatibility needs saying. `dbcanary`, the pre-rename project
+name, is vendor-level and stays wherever the page has to accept it.
 The firmware binaries' own log strings are not page text.
 
 ## 5. Traps
