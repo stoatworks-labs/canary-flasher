@@ -17,7 +17,7 @@ Licence: Apache-2.0
 
 An npm dependency, and what the flasher is built on, as its README says: src/flash.ts drives every flash through its ESPLoader over a Web Serial Transport.
 
-### CANary firmware images — Stoatworks canary
+### CANary firmware images — Stoatworks CANary
 
 <https://github.com/stoatworks-labs/canary>  
 Copyright: Stoatworks Labs

@@ -134,7 +134,7 @@ async function loadManifest() {
 function renderVariants() {
   if (!manifest) return;
   const release = manifest.releases.find((r) => r.id === $<HTMLSelectElement>("release").value)!;
-  $("release-meta").textContent = `Built from canary ${release.commit.slice(0, 7)} with ESP-IDF ${release.variants[0].app.idfVersion}.`;
+  $("release-meta").textContent = `Built from CANary ${release.commit.slice(0, 7)} with ESP-IDF ${release.variants[0].app.idfVersion}.`;
   const keep = chosen?.release.id === release.id ? chosen.variant.id : null;
   const pick = release.variants.find((v) => v.id === keep) ?? release.variants.find((v) => v.recommended) ?? release.variants[0];
   $("variants").replaceChildren(...release.variants.map((v) => {
