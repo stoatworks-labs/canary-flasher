@@ -61,6 +61,11 @@ onto a unit yet.
 **main-60a871f** is the last release proven on a board (Ethernet and USB, acceptance test
 19/19). Its app still carries the pre-rename project name `dbcanary`, which the page accepts.
 
+The same images go on the [CANary releases](https://github.com/stoatworks-labs/canary/releases)
+too, for tools that write the firmware themselves rather than through this page.
+`scripts/export-release.ts` packs one release as `canary-firmware-<id>.zip`: its own `manifest.json`
+plus the parts, byte for byte, re-checked the same way as an import.
+
 The firmware images are built from the CANary source and **aren't** covered by this repository's
 MIT licence, which applies to the flasher itself.
 

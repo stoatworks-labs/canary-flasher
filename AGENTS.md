@@ -19,6 +19,8 @@ src/md5.ts        MD5 for esptool's write verification (Web Crypto has none)
 src/flash.ts      the only module that touches hardware: Session wraps ESPLoader
 src/main.ts       UI wiring
 scripts/import-firmware.ts   the only writer of public/firmware/
+scripts/export-release.ts    packs one bundled release as canary-firmware-<id>.zip for a
+                             GitHub release on stoatworks-labs/canary (Burrow downloads it)
 test/             vitest, against the real bundled images
 ```
 

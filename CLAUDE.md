@@ -28,6 +28,19 @@ node scripts/import-firmware.ts --build <scratch>/firmware/out-standard --releas
 
 Then `npm test`. The suite re-hashes every file against the manifest.
 
+## Publishing a release for Burrow
+
+Burrow downloads only from GitHub, so each bundled release also goes on a release of the
+public `stoatworks-labs/canary` repo, made locally (no workflow):
+
+```bash
+node scripts/export-release.ts [--release main-<sha>] [--out <dir>]   # default: the first release
+gh release create v<x.y.z> -R stoatworks-labs/canary <dir>/canary-firmware-main-<sha>.zip ...
+```
+
+The zip holds `manifest.json` (a Manifest with just that release, paths unchanged) and the parts,
+byte for byte. Check the asset's `digest` from `gh api` against the sha256 the script prints.
+
 ## Deploy
 
 `.github/workflows/deploy.yml` deploys every push to `main`. It needs `CLOUDFLARE_API_TOKEN`
