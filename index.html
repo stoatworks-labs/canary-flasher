@@ -3,17 +3,63 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CANary Flasher (beta)</title>
-<meta name="description" content="Flash CANary firmware from a browser tab over the unit's USB-C port. Bundled releases or your own build; nothing is uploaded.">
-<meta property="og:title" content="CANary Flasher (beta)">
-<meta property="og:description" content="Flash CANary firmware from a browser tab over USB-C. No toolchain, nothing uploaded.">
+<title>CANary Flasher (beta) — firmware onto a CANary, from a browser</title>
+<meta name="description" content="Flash firmware onto a CANary over its USB-C port from a browser tab. Every file is checked before it's written and every write is read back. Free, and nothing is uploaded.">
+<meta property="og:title" content="CANary Flasher (beta) — firmware onto a CANary, from a browser">
+<meta property="og:description" content="Flash firmware onto a CANary over its USB-C port from a browser tab. Every file is checked before it's written and every write is read back. Free, and nothing is uploaded.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://stoatworks-labs.com/thumbs/canary-flasher.png">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://canary-flasher.stoatworks-labs.com/">
+<meta property="og:site_name" content="Stoatworks Labs">
+<meta property="og:url" content="https://canary-flasher.stoatworks-labs.com/">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
+<meta property="og:image:alt" content="CANary Flasher">
+<!-- One entity with the tool's page on stoatworks-labs.com: same @id there. -->
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "@id": "https://canary-flasher.stoatworks-labs.com#app",
+    "name": "CANary Flasher",
+    "url": "https://canary-flasher.stoatworks-labs.com",
+    "description": "Flash firmware onto a CANary over its USB-C port from a browser tab. Every file is checked before it's written and every write is read back. Free, and nothing is uploaded.",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Any (runs in a web browser)",
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "GBP"
+    },
+    "author": {
+      "@id": "https://stoatworks-labs.com/#organization",
+      "@type": "Organization",
+      "name": "Stoatworks Labs",
+      "url": "https://stoatworks-labs.com/"
+    },
+    "publisher": {
+      "@id": "https://stoatworks-labs.com/#organization"
+    },
+    "sameAs": [
+      "https://stoatworks-labs.com/web-tools/canary-flasher/",
+      "https://github.com/stoatworks-labs/canary-flasher"
+    ]
+  }
+</script>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <script type="module" src="/src/main.ts"></script>
 </head>
 <body>
+<noscript>
+  <p>A browser page that flashes firmware onto a CANary over its USB-C port. Pick a bundled release, or give it the .bin files from your own build. Every file is identified by what's in it and checked before anything's written, and every write is read back and verified. You don't need a toolchain or a driver, and nothing gets uploaded anywhere.</p>
+  <p>CANary Flasher runs in the browser and needs JavaScript.</p>
+  <ul>
+    <li><a href="https://stoatworks-labs.com/software/canary-flasher/">CANary Flasher on stoatworks-labs.com</a></li>
+    <li><a href="https://github.com/stoatworks-labs/canary-flasher">Source on GitHub</a></li>
+  </ul>
+</noscript>
 <main>
   <header>
     <h1>CANary Flasher <span class="tag">beta</span></h1>
@@ -124,6 +170,7 @@
   <footer>
     <button type="button" class="linkish" data-stoatworks-about>About</button>
     · <a href="https://stoatworks-labs.com/hardware/canary/">CANary</a>
+    · <a href="https://stoatworks-labs.com/web-tools/canary-flasher/" target="_blank" rel="noopener">More about the flasher</a>
     · <span id="version"></span>
   </footer>
 </main>

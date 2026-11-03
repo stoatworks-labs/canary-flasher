@@ -1,0 +1,14 @@
+# CANary Flasher
+
+> Firmware onto a CANary, from a browser
+
+A browser page that flashes firmware onto a CANary over its USB-C port. Pick a bundled release, or give it the .bin files from your own build. Every file is identified by what's in it and checked before anything's written, and every write is read back and verified. You don't need a toolchain or a driver, and nothing gets uploaded anywhere.
+
+It's a Stoatworks Labs web tool: free, and it runs in a web browser.
+
+## Links
+
+- [CANary Flasher, the app](https://canary-flasher.stoatworks-labs.com/): runs in the browser, free
+- [Project page](https://stoatworks-labs.com/software/canary-flasher/)
+- [Web tool page](https://stoatworks-labs.com/web-tools/canary-flasher/)
+- [Source on GitHub](https://github.com/stoatworks-labs/canary-flasher)

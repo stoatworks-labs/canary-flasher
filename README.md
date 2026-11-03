@@ -12,6 +12,8 @@ or Python first.
 
 It's live at **<https://canary-flasher.stoatworks-labs.com>**. It needs Web Serial, which means desktop Chrome, Edge or Opera.
 
+There's more on [its page at stoatworks-labs.com](https://stoatworks-labs.com/web-tools/canary-flasher/).
+
 ![The flasher with the latest release chosen and its four parts listed](docs/screenshots/flasher.png)
 
 ## What it does
