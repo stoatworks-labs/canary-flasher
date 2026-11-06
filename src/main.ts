@@ -2,12 +2,12 @@ import "./style.css";
 import { SERIAL_VIDS, chipByImageId, type Chip } from "./chips.ts";
 import { looseWrites, openPackageZip, placeFiles, sha256hex, variantWrites, type LooseFile, type OpenedPackage } from "./files.ts";
 import { Session, unitProblems, type DeviceInfo } from "./flash.ts";
-import { describeImage, hex } from "./image.ts";
+import { describeImage, hex, partitionAt } from "./image.ts";
 import {
   deviceChip, githubAsset, mergedName, readPackage, zipName,
   type BundleIndex, type DeviceDef, type Package, type Part, type Release, type Variant,
 } from "./package.ts";
-import { checkPlan, components, planNotes, withOtadataReset, type PlanContext, type PlannedWrite } from "./plan.ts";
+import { checkPlan, components, effectiveTable, planNotes, withOtadataReset, type PlanContext, type PlannedWrite } from "./plan.ts";
 import { isZip } from "./zip.ts";
 
 declare const __APP_VERSION__: string;
@@ -102,7 +102,7 @@ $("connect").addEventListener("click", async () => {
   refresh();
   status("Connecting…");
   try {
-    session = await Session.open(port, log);
+    session = await Session.open(port, log, helpDevice()?.baud);
     unit = await session.describe(helpDevice()?.tableOffset);
     adoptRunningDevice();
     status(unit.chip ? "Connected." : `Connected, but this is an ${unit.chipName}, which this page does not flash.`, unit.chip ? "ok" : "err");
@@ -469,12 +469,18 @@ function renderPlan() {
     return;
   }
   t.hidden = false;
-  for (const c of components(plan.writes).sort((a, b) => a.offset - b.offset)) {
+  const parts = components(plan.writes, plan.want.tableOffset);
+  const table = effectiveTable(parts, { unitTable: unit?.table ?? null });
+  for (const c of parts.sort((a, b) => a.offset - b.offset)) {
+    const home = table ? partitionAt(table, c.offset) : undefined;
+    const what = c.info.kind !== "unknown" ? describeImage(c.info)
+      : c.raw ? "raw data, at the offset you typed"
+      : home ? `data for the ${home.label} partition` : "data";
     body.append(el("tr", {},
       el("td", {}, c.name),
       el("td", { className: "mono" }, hex(c.offset)),
       el("td", { className: "mono" }, kb(c.data.length)),
-      el("td", {}, c.info.kind === "unknown" && c.raw ? "raw data, at the offset you typed" : describeImage(c.info))));
+      el("td", {}, what)));
   }
   const refused = problems();
   const c = context();

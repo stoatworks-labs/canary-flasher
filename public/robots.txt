@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://canary-flasher.stoatworks-labs.com/sitemap.xml
+Sitemap: https://flasher.stoatworks-labs.com/sitemap.xml

@@ -43,6 +43,8 @@ export interface DeviceDef {
   keeps?: string;
   /** CONFIG_PARTITION_TABLE_OFFSET, when it is not 0x8000. */
   tableOffset?: number;
+  /** Serial speed for flashing, when 921600 is too fast for how the board is wired. */
+  baud?: number;
 }
 
 export interface Package {
@@ -107,6 +109,7 @@ export function validateDevice(d: DeviceDef): string[] {
   }
   if (d.repo !== undefined && !/^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/.test(d.repo)) e.push(`${at}: repo must be owner/name`);
   if (d.tableOffset !== undefined && (d.tableOffset % 0x1000 !== 0 || d.tableOffset < 0x8000)) e.push(`${at}: bad tableOffset`);
+  if (d.baud !== undefined && ![115200, 230400, 460800, 921600, 1500000, 2000000].includes(d.baud)) e.push(`${at}: baud must be a standard esptool speed`);
   return e;
 }
 

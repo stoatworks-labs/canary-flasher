@@ -1,0 +1,21 @@
+{
+  "id": "cuckoo",
+  "name": "Cuckoo",
+  "chip": "ESP32-C3",
+  "flashSize": 4194304,
+  "projects": ["cuckoo_ui"],
+  "repo": "stoatworks-labs/cuckoo-firmware",
+  "page": "https://stoatworks-labs.com/hardware/cuckoo/",
+  "status": "The ESP32-C3 image has run on one board. The RP2354A images it carries have not run yet.",
+  "usb": [{ "vendorId": 12346, "productId": 4097, "label": "USB JTAG/serial debug unit" }],
+  "connect": [
+    "Plug Cuckoo's USB-C into this computer. That powers it too.",
+    "Press Connect and pick USB JTAG/serial debug unit (Espressif, 303a:1001)."
+  ],
+  "bootMode": [
+    "Unplug the USB-C.",
+    "Hold TP7 (ESP_BOOT, GPIO9) to ground and plug the USB-C back in.",
+    "Let go of TP7 and press Connect."
+  ],
+  "keeps": "its Wi-Fi password"
+}

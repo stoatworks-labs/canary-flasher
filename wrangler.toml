@@ -1,4 +1,4 @@
-# Cloudflare deployment for CANary Flasher.
+# Cloudflare deployment for Stoatworks Flasher.
 #
 # A static-assets-only Worker: no server code. Built by the deploy workflow in
 # .github/workflows/deploy.yml (npm ci && npm run build), never by a Cloudflare
@@ -10,22 +10,21 @@
 # `public/_headers` is copied into dist/ by Vite and carries the CSP and the
 # immutable-cache rule for hashed assets; the assets runtime honours it.
 #
-# `name` must match the Cloudflare project. It is still "dbcanary-flasher" after the
-# rename to CANary (2026-09-27): renaming the Worker would create a second one. Only the
-# custom domain moved, and the old one was detached to make room (the zone is at its
-# 100-custom-domain cap), so dbcanary-flasher.stoatworks-labs.com no longer resolves.
+# This was CANary Flasher, deployed as the Worker "dbcanary-flasher" on the custom
+# domain canary-flasher.stoatworks-labs.com. Since 2026-11-06 it is "flasher", and
+# that old Worker is the redirect in redirect/.
+#
+# The host is a ROUTE, not a custom domain: stoatworks-labs.com is at Cloudflare's
+# 100 custom domains per zone (error 100122). A route needs a proxied DNS record to
+# exist, so flasher.stoatworks-labs.com has an AAAA 100:: record, made through the
+# API, as cosplay and edid-editor have.
 
-name = "dbcanary-flasher"
+name = "flasher"
 compatibility_date = "2026-07-30"
 
 [assets]
 directory = "./dist"
 
-# The custom domain is declared here rather than clicked into the dashboard, so
-# the routing is in the repo and a fresh deploy reproduces it. Note this
-# silently disables the workers.dev URL. Do the FIRST deploy by hand: a new
-# custom domain can take over six minutes to resolve, longer than the
-# workflow's live-site check waits.
 [[routes]]
-pattern = "canary-flasher.stoatworks-labs.com"
-custom_domain = true
+pattern = "flasher.stoatworks-labs.com/*"
+zone_name = "stoatworks-labs.com"

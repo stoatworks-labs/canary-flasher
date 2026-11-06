@@ -1,0 +1,19 @@
+# The old address, canary-flasher.stoatworks-labs.com, forwarding to the new one.
+#
+# This Worker keeps the old name, dbcanary-flasher, because that Worker already owns
+# the old custom domain (it kept the pre-rename name through the dbCANary → CANary
+# rename too). Deploying a script over it swaps the site for the redirect in one step,
+# and the domain never belongs to nobody in between. The site itself now deploys as
+# flasher, from the wrangler.toml at the top.
+#
+# deploy.yml deploys this on every push, after the site:
+#
+#   npx wrangler deploy --config redirect/wrangler.toml
+
+name = "dbcanary-flasher"
+main = "worker.js"
+compatibility_date = "2026-07-30"
+
+[[routes]]
+pattern = "canary-flasher.stoatworks-labs.com"
+custom_domain = true

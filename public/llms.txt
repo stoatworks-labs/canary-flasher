@@ -1,14 +1,18 @@
-# CANary Flasher
+# Stoatworks Flasher
 
-> Firmware onto a CANary, from a browser
+> Firmware onto our hardware, or any ESP32, from a browser
 
-A browser page that flashes firmware onto a CANary over its USB-C port. Pick a bundled release, or give it the .bin files from your own build. Every file is identified by what's in it and checked before anything's written, and every write is read back and verified. You don't need a toolchain or a driver, and nothing gets uploaded anywhere.
+A browser page that puts firmware on Stoatworks hardware over USB: the CANary, nanODE and Cuckoo, or any ESP32 board with an image of your own. Pick a device and a release, or give it a release zip, a whole-flash .bin or the parts of an ESP-IDF build. Every file is identified by what's in it and checked before anything's written, and every write is read back and verified. You don't need a toolchain or a driver, and nothing gets uploaded anywhere.
+
+Every firmware release is also a direct download: a release zip (which this page and Burrow both read) and a whole-flash .bin per variant, to write at 0x0 with any ESP32 flashing tool.
 
 It's a Stoatworks Labs web tool: free, and it runs in a web browser.
 
 ## Links
 
-- [CANary Flasher, the app](https://canary-flasher.stoatworks-labs.com/): runs in the browser, free
-- [Project page](https://stoatworks-labs.com/software/canary-flasher/)
-- [Web tool page](https://stoatworks-labs.com/web-tools/canary-flasher/)
-- [Source on GitHub](https://github.com/stoatworks-labs/canary-flasher)
+- [Stoatworks Flasher, the app](https://flasher.stoatworks-labs.com/): runs in the browser, free
+- [Web tool page](https://stoatworks-labs.com/web-tools/flasher/)
+- [Source on GitHub](https://github.com/stoatworks-labs/flasher)
+- [CANary firmware releases](https://github.com/stoatworks-labs/canary/releases)
+- [nanODE firmware releases](https://github.com/stoatworks-labs/nanode-firmware/releases)
+- [Cuckoo firmware releases](https://github.com/stoatworks-labs/cuckoo-firmware/releases)
