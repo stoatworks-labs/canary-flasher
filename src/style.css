@@ -1,3 +1,6 @@
+/* A class that sets display (label.check, .progress) would otherwise beat the hidden attribute. */
+[hidden] { display: none !important; }
+
 :root {
   color-scheme: light dark;
   --bg: #fbfaf8;      --panel: #fff;     --ink: #1c1b1a;   --dim: #6b6864;
