@@ -1,4 +1,38 @@
 {
+  "schema": 2,
+  "device": {
+    "id": "canary",
+    "name": "CANary",
+    "chip": "ESP32-S3",
+    "flashSize": 8388608,
+    "projects": [
+      "canary",
+      "dbcanary"
+    ],
+    "repo": "stoatworks-labs/canary",
+    "page": "https://stoatworks-labs.com/hardware/canary/",
+    "status": "main-60a871f is the last release proven on a board. The newer ones differ only in their names and haven't been on a unit yet.",
+    "usb": [
+      {
+        "vendorId": 12346,
+        "productId": 4097,
+        "label": "USB JTAG/serial debug unit"
+      }
+    ],
+    "connect": [
+      "Plug the unit's USB-C port into this computer. That powers it too.",
+      "Press Connect and pick USB JTAG/serial debug unit (Espressif, 303a:1001)."
+    ],
+    "notes": [
+      "A unit running the USB network firmware turns its USB-C port into a network adapter 8 seconds after it boots, and from then on there is no serial port to find. Press Connect within those 8 seconds of plugging it in, or put it in download mode."
+    ],
+    "bootMode": [
+      "Hold BOOT (SW302).",
+      "Tap EN (SW301).",
+      "Release BOOT and press Connect."
+    ],
+    "keeps": "its settings (name, port, LAN address) and its stored crash log"
+  },
   "releases": [
     {
       "id": "main-ff4110d",
@@ -88,7 +122,8 @@
               "size": 598704,
               "sha256": "acc2674ac441413205a83c1e4ec5a49ceae622266f64078ccb512909717501ae"
             }
-          ]
+          ],
+          "after": "In 8 s its USB-C port becomes a network adapter. The settings page is at http://192.168.7.1/."
         }
       ]
     },
@@ -180,7 +215,8 @@
               "size": 598720,
               "sha256": "05e9ae5bf28dc6ee25df6d2c05e7120daee6b8171f5eda2dd55eaab9cb14028c"
             }
-          ]
+          ],
+          "after": "In 8 s its USB-C port becomes a network adapter. The settings page is at http://192.168.7.1/."
         }
       ]
     }

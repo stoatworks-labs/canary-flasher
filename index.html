@@ -3,29 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CANary Flasher (beta) — firmware onto a CANary, from a browser</title>
-<meta name="description" content="Flash firmware onto a CANary over its USB-C port from a browser tab. Every file is checked before it's written and every write is read back. Free, and nothing is uploaded.">
-<meta property="og:title" content="CANary Flasher (beta) — firmware onto a CANary, from a browser">
-<meta property="og:description" content="Flash firmware onto a CANary over its USB-C port from a browser tab. Every file is checked before it's written and every write is read back. Free, and nothing is uploaded.">
+<title>Stoatworks Flasher (beta) — firmware onto an ESP32, from a browser</title>
+<meta name="description" content="Put Stoatworks firmware, or any ESP32 image, onto a board over USB from a browser tab. Every file is checked before it's written and every write is read back. Free, and nothing is uploaded.">
+<meta property="og:title" content="Stoatworks Flasher (beta) — firmware onto an ESP32, from a browser">
+<meta property="og:description" content="Put Stoatworks firmware, or any ESP32 image, onto a board over USB from a browser tab. Every file is checked before it's written and every write is read back. Free, and nothing is uploaded.">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://stoatworks-labs.com/thumbs/canary-flasher.png">
+<meta property="og:image" content="https://stoatworks-labs.com/thumbs/flasher.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="canonical" href="https://canary-flasher.stoatworks-labs.com/">
+<link rel="canonical" href="https://flasher.stoatworks-labs.com/">
 <meta property="og:site_name" content="Stoatworks Labs">
-<meta property="og:url" content="https://canary-flasher.stoatworks-labs.com/">
+<meta property="og:url" content="https://flasher.stoatworks-labs.com/">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="720">
-<meta property="og:image:alt" content="CANary Flasher">
+<meta property="og:image:alt" content="Stoatworks Flasher">
 <!-- One entity with the tool's page on stoatworks-labs.com: same @id there. -->
 <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "@id": "https://canary-flasher.stoatworks-labs.com#app",
-    "name": "CANary Flasher",
-    "url": "https://canary-flasher.stoatworks-labs.com",
-    "description": "Flash firmware onto a CANary over its USB-C port from a browser tab. Every file is checked before it's written and every write is read back. Free, and nothing is uploaded.",
-    "applicationCategory": "MultimediaApplication",
+    "@id": "https://flasher.stoatworks-labs.com#app",
+    "name": "Stoatworks Flasher",
+    "url": "https://flasher.stoatworks-labs.com",
+    "description": "Put Stoatworks firmware, or any ESP32 image, onto a board over USB from a browser tab. Every file is checked before it's written and every write is read back. Free, and nothing is uploaded.",
+    "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Any (runs in a web browser)",
     "isAccessibleForFree": true,
     "offers": {
@@ -43,8 +43,8 @@
       "@id": "https://stoatworks-labs.com/#organization"
     },
     "sameAs": [
-      "https://stoatworks-labs.com/web-tools/canary-flasher/",
-      "https://github.com/stoatworks-labs/canary-flasher"
+      "https://stoatworks-labs.com/web-tools/flasher/",
+      "https://github.com/stoatworks-labs/flasher"
     ]
   }
 </script>
@@ -53,49 +53,49 @@
 </head>
 <body>
 <noscript>
-  <p>A browser page that flashes firmware onto a CANary over its USB-C port. Pick a bundled release, or give it the .bin files from your own build. Every file is identified by what's in it and checked before anything's written, and every write is read back and verified. You don't need a toolchain or a driver, and nothing gets uploaded anywhere.</p>
-  <p>CANary Flasher runs in the browser and needs JavaScript.</p>
+  <p>A browser page that puts firmware on Stoatworks hardware over USB: the CANary, nanODE and Cuckoo, or any ESP32 board with an image of your own. Every file is identified by what's in it and checked before anything's written, and every write is read back and verified. You don't need a toolchain or a driver, and nothing gets uploaded anywhere.</p>
+  <p>Stoatworks Flasher runs in the browser and needs JavaScript. The firmware downloads are on each device's GitHub releases.</p>
   <ul>
-    <li><a href="https://stoatworks-labs.com/software/canary-flasher/">CANary Flasher on stoatworks-labs.com</a></li>
-    <li><a href="https://github.com/stoatworks-labs/canary-flasher">Source on GitHub</a></li>
+    <li><a href="https://stoatworks-labs.com/web-tools/flasher/">Stoatworks Flasher on stoatworks-labs.com</a></li>
+    <li><a href="https://github.com/stoatworks-labs/flasher">Source on GitHub</a></li>
   </ul>
 </noscript>
 <main>
   <header>
-    <h1>CANary Flasher <span class="tag">beta</span></h1>
-    <p class="sub">Put firmware on a CANary over its USB-C port, straight from this tab. The images are
-      checked here and written by your browser. Nothing is uploaded anywhere.</p>
+    <h1>Stoatworks Flasher <span class="tag">beta</span></h1>
+    <p class="sub">Put firmware on our hardware, or any ESP32 image on any ESP32 board, over USB, straight
+      from this tab. The images are checked here and written by your browser. Nothing is uploaded anywhere.</p>
   </header>
 
   <div id="no-serial" class="banner err" hidden>
     <strong>This browser cannot reach a USB serial port.</strong>
     Web Serial is in desktop Chrome, Edge and Opera. Safari, Firefox and phones do not have it.
+    The downloads at the bottom of the page work anywhere.
   </div>
 
   <div class="banner">
-    <strong>Beta.</strong> The bundled images are built from the CANary source and checked before
-    anything is written. This page has not yet flashed a unit end to end. If a flash fails half way, the unit
-    is not bricked. The ESP32-S3's boot ROM cannot be overwritten, so hold <b>BOOT</b>, tap <b>EN</b> and
-    flash again.
+    <strong>Beta.</strong> Every image is checked before anything is written, and every write is read back.
+    This page has not yet flashed a unit end to end. If a flash fails half way, the board is not bricked: an
+    ESP32's boot ROM cannot be overwritten, so put it in download mode and flash again.
   </div>
 
   <section class="panel" id="connect-panel">
-    <h2>1 · Connect the unit</h2>
-    <ol class="steps">
-      <li>Plug the unit's <b>USB-C</b> port into this computer. That powers it too.</li>
-      <li>Press <b>Connect</b> and pick <span class="mono">USB JTAG/serial debug unit</span> (Espressif, 303a:1001).</li>
+    <h2>1 · Connect the board</h2>
+    <ol class="steps" id="connect-steps">
+      <li>Plug the board's USB port into this computer.</li>
+      <li>Press <b>Connect</b> and pick its serial port.</li>
     </ol>
-    <details class="hint-box">
+    <details class="hint-box" id="connect-help">
       <summary>No port listed, or it will not connect?</summary>
-      <p>A unit running the <b>USB network</b> firmware turns its USB-C port into a network adapter
-        8 seconds after it boots, and from then on there is no serial port to find. Either press Connect
-        within those 8 seconds of plugging it in, or put it in download mode:</p>
-      <ol>
-        <li>Hold <b>BOOT</b> (SW302).</li>
-        <li>Tap <b>EN</b> (SW301).</li>
+      <div id="connect-notes"></div>
+      <p>Put it in download mode, where the board waits until it is flashed or reset:</p>
+      <ol id="boot-steps">
+        <li>Hold <b>BOOT</b> (sometimes <b>IO0</b>).</li>
+        <li>Tap <b>EN</b> or <b>RESET</b>.</li>
         <li>Release <b>BOOT</b> and press Connect.</li>
       </ol>
-      <p>In download mode the unit stays put until it is flashed or reset, so there is no rush.</p>
+      <p>A board with a USB-to-serial chip (CP2102, CH340) may also need that chip's driver on older systems.
+        Tick <i>show every serial port</i> if it is on a chip this page does not list by default.</p>
     </details>
     <div class="row">
       <button id="connect">Connect</button>
@@ -108,25 +108,44 @@
   <section class="panel" id="firmware-panel">
     <h2>2 · Choose firmware</h2>
     <div class="seg" role="tablist">
-      <button role="tab" id="tab-release" aria-selected="true">Release</button>
-      <button role="tab" id="tab-custom" aria-selected="false">Your own build</button>
+      <button role="tab" id="tab-release" aria-selected="true">Our firmware</button>
+      <button role="tab" id="tab-file" aria-selected="false">Your own file</button>
     </div>
 
     <div id="pane-release">
-      <label class="field" for="release">Release</label>
-      <select id="release"></select>
-      <p class="hint" id="release-meta"></p>
-      <div id="variants" class="cards"></div>
+      <label class="field">Device</label>
+      <div id="devices" class="cards devices"></div>
+      <p class="hint" id="device-meta"></p>
+      <div id="release-box" hidden>
+        <label class="field" for="release">Release</label>
+        <select id="release"></select>
+        <p class="hint" id="release-meta"></p>
+        <div id="variants" class="cards"></div>
+        <p class="hint dl" id="release-downloads"></p>
+      </div>
     </div>
 
-    <div id="pane-custom" hidden>
-      <label class="field" for="files">Image files</label>
-      <input type="file" id="files" multiple accept=".bin,application/octet-stream">
-      <p class="hint">From an ESP-IDF build directory: <code>bootloader/bootloader.bin</code>,
-        <code>partition_table/partition-table.bin</code>, <code>ota_data_initial.bin</code> and
-        <code>canary.bin</code>. Or just <code>canary.bin</code> to replace the app on its own.
-        Each file is identified by its contents, not its name, and put at the offset its kind belongs at.</p>
-      <label class="check"><input type="checkbox" id="allow-foreign"> allow an app that is not a CANary build</label>
+    <div id="pane-file" hidden>
+      <label class="field" for="files">Files</label>
+      <input type="file" id="files" multiple accept=".bin,.zip,application/octet-stream,application/zip">
+      <p class="hint">Any of these:
+        a <b>release zip</b> you downloaded from here or GitHub;
+        a <b>whole-flash image</b> (esptool <code>merge-bin</code>, or one of the <code>.bin</code> downloads below), which goes at 0x0;
+        or the <b>parts of an ESP-IDF build</b>: <code>bootloader.bin</code>, <code>partition-table.bin</code>,
+        <code>ota_data_initial.bin</code> and the app, or just the app on its own.
+        Each file is identified by its contents, not its name, and put where its kind belongs.
+        Anything else, a filesystem image say, waits for an offset you type: <code>0x3E0000</code>,
+        <code>1M</code>, or a partition's name.</p>
+      <div id="file-release" hidden>
+        <p class="hint" id="file-package"></p>
+        <label class="field" for="file-release-select">Release</label>
+        <select id="file-release-select"></select>
+        <div id="file-variants" class="cards"></div>
+      </div>
+      <table id="loose" class="parts" hidden>
+        <thead><tr><th>File</th><th>What it is</th><th>Offset</th></tr></thead>
+        <tbody></tbody>
+      </table>
     </div>
 
     <table id="plan" class="parts" hidden>
@@ -134,14 +153,13 @@
       <tbody></tbody>
     </table>
     <p id="plan-notes" class="hint"></p>
+    <label class="check" id="replace-box" hidden><input type="checkbox" id="replace"> <span id="replace-text"></span></label>
   </section>
 
   <section class="panel" id="flash-panel">
     <h2>3 · Flash</h2>
     <label class="check"><input type="checkbox" id="erase-all"> erase the whole flash first</label>
-    <p class="hint">Off: the unit keeps its settings (name, port, LAN address) and its stored crash log.
-      On: it comes back on factory defaults. Use this to recover a unit whose settings or OTA state
-      you do not trust.</p>
+    <p class="hint" id="erase-hint"></p>
     <div class="row">
       <button id="flash" disabled>Flash</button>
       <span id="flash-why" class="dim"></span>
@@ -150,10 +168,19 @@
     <p id="status" class="status" role="status"></p>
   </section>
 
+  <section class="panel" id="downloads-panel">
+    <h2>Downloads</h2>
+    <p class="hint">Keep a copy so you don't need to download it each time. Open a release <b>zip</b> here later
+      under <i>Your own file</i>, or Burrow reads it too. Each <b>.bin</b> is the whole flash for one variant:
+      write it at <code>0x0</code> with this page, esptool (<code>esptool.py write_flash 0x0 &lt;file&gt;</code>) or
+      Espressif's own flash tool.</p>
+    <div id="downloads"></div>
+  </section>
+
   <section class="panel">
     <h2>Serial console</h2>
-    <p class="hint">Watch the unit boot. Opening the port resets the unit. On the USB network firmware the
-      console goes quiet 8 seconds after boot, when the port becomes a network adapter.</p>
+    <p class="hint">Watch the board boot. Opening the port can reset the board, and on some firmware the
+      port goes away a few seconds after boot.</p>
     <div class="row">
       <button id="console-open" class="ghost">Open console</button>
       <button id="console-close" class="ghost" hidden>Close</button>
@@ -169,8 +196,8 @@
 
   <footer>
     <button type="button" class="linkish" data-stoatworks-about>About</button>
-    · <a href="https://stoatworks-labs.com/hardware/canary/">CANary</a>
-    · <a href="https://stoatworks-labs.com/web-tools/canary-flasher/" target="_blank" rel="noopener">More about the flasher</a>
+    · <a href="https://stoatworks-labs.com/hardware/">Our hardware</a>
+    · <a href="https://stoatworks-labs.com/web-tools/flasher/" target="_blank" rel="noopener">More about the flasher</a>
     · <span id="version"></span>
   </footer>
 </main>
@@ -190,9 +217,9 @@
 <script
   src="/support-footer.js"
   defer
-  data-app="CANary Flasher"
-  data-repo="https://github.com/stoatworks-labs/canary-flasher"
-  data-note="It runs entirely in your browser. The firmware goes from this page to the unit over USB and nowhere else."
+  data-app="Stoatworks Flasher"
+  data-repo="https://github.com/stoatworks-labs/flasher"
+  data-note="It runs entirely in your browser. The firmware goes from this page to the board over USB and nowhere else."
 ></script>
 </body>
 </html>

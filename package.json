@@ -1,16 +1,19 @@
 {
-  "name": "canary-flasher",
-  "version": "0.1.0",
+  "name": "stoatworks-flasher",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Flash CANary firmware from a browser tab over USB — bundled releases or your own build, no toolchain.",
+  "description": "Flash Stoatworks firmware, or any ESP32 image, from a browser tab over USB: no toolchain, nothing uploaded.",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "import-firmware": "node scripts/import-firmware.mjs"
+    "import-firmware": "node scripts/import-firmware.ts",
+    "predev": "node scripts/downloads.ts",
+    "prebuild": "node scripts/downloads.ts",
+    "export-release": "node scripts/export-release.ts"
   },
   "dependencies": {
     "esptool-js": "^0.7.0"

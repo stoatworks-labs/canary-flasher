@@ -2,19 +2,50 @@
 // protocol; this decides what is allowed to reach it.
 
 import { ESPLoader, Transport, type IEspLoaderTerminal } from "esptool-js";
-import { activeOtaSlot, checkPlan, identify, OFFSETS, type AppDescription, type PlannedWrite } from "./image.ts";
+import { DEFAULT_TABLE_OFFSET, TABLE_SIZE, chipByName, type Chip } from "./chips.ts";
+import {
+  PART_APP, SUB_OTA_0, activeOtaSlot, bootPartition, identify, otaSlot, otadataPartition, parsePartitionTable,
+  type AppDescription, type Partition,
+} from "./image.ts";
 import { md5hex } from "./md5.ts";
-
-/** Espressif's USB VID. The S3's built-in USB-Serial-JTAG enumerates as 303a:1001. */
-export const ESPRESSIF_VID = 0x303a;
+import { checkPlan, type PlannedWrite } from "./plan.ts";
 
 export interface DeviceInfo {
-  chip: string;
+  /** What the ROM says it is. */
+  chipName: string;
+  /** The same, from the chip table; null for a chip this page does not flash. */
+  chip: Chip | null;
   mac: string;
   flashBytes: number;
   flashLabel: string;
+  /** The partition table on the unit, if it has one. */
+  table: Partition[] | null;
   /** What the bootloader will boot, read off the unit's flash. */
-  running: { slot: number; app: AppDescription | null } | null;
+  running: { partition: string; app: AppDescription | null } | null;
+}
+
+export interface WriteOptions {
+  eraseAll: boolean;
+  /** Project names an app must carry; unset for your own file. */
+  projects?: readonly string[];
+  /** The chip the firmware was chosen for; a different unit is refused. */
+  expectChip?: string;
+  /** The least flash the firmware's device has. */
+  minFlash?: number;
+  tableOffset?: number;
+  onProgress: (done: number, total: number) => void;
+}
+
+/** Reasons the connected unit itself is wrong for the firmware, before any file is looked at. */
+export function unitProblems(info: DeviceInfo, want: { chip?: string; minFlash?: number; name?: string }): string[] {
+  const p: string[] = [];
+  if (!info.chip) p.push(`this is an ${info.chipName}, which this page does not flash`);
+  else if (want.chip && info.chip.name !== want.chip) p.push(`this is an ${info.chipName}, and ${want.name ?? "the firmware"} is for an ${want.chip}`);
+  if (want.minFlash && info.flashBytes && info.flashBytes < want.minFlash) {
+    p.push(`this unit has ${info.flashLabel} of flash, and ${want.name ?? "the firmware"} needs ${want.minFlash / 1024 / 1024}MB`);
+  }
+  if (!info.flashBytes) p.push("the unit did not say how much flash it has");
+  return p;
 }
 
 export class Session {
@@ -24,14 +55,14 @@ export class Session {
     readonly port: SerialPort,
   ) {}
 
-  static async open(port: SerialPort, log: (line: string) => void): Promise<Session> {
+  static async open(port: SerialPort, log: (line: string) => void, baudrate = 921600): Promise<Session> {
     const terminal: IEspLoaderTerminal = {
       clean() {},
       writeLine: (d) => log(d),
       write: (d) => log(d),
     };
     const transport = new Transport(port, false);
-    const loader = new ESPLoader({ transport, baudrate: 921600, terminal });
+    const loader = new ESPLoader({ transport, baudrate, terminal });
     try {
       await loader.main("default_reset");
     } catch (e) {
@@ -41,33 +72,47 @@ export class Session {
     return new Session(transport, loader, port);
   }
 
-  async describe(): Promise<DeviceInfo> {
-    const chip = this.loader.chip.CHIP_NAME;
+  async describe(tableOffset = DEFAULT_TABLE_OFFSET): Promise<DeviceInfo> {
+    const chipName = this.loader.chip.CHIP_NAME;
+    const chip = chipByName(chipName) ?? null;
     const mac = await this.loader.chip.readMac(this.loader);
     const flashLabel = (await this.loader.detectFlashSize()) ?? "unknown";
     const flashBytes = flashLabel === "unknown" ? 0 : this.loader.flashSizeBytes(flashLabel as never);
+    let table: Partition[] | null = null;
     let running: DeviceInfo["running"] = null;
     try {
-      const otadata = await this.loader.readFlash(OFFSETS.otadata, 0x2000);
-      const { slot } = activeOtaSlot(otadata);
-      // ota_0 at 0x20000, ota_1 right after it — CANary's table since rev A.
-      const base = slot === 0 ? 0x20000 : 0x1f0000;
-      const head = await this.loader.readFlash(base, 0x200);
-      const info = identify(head);
-      running = { slot, app: info.kind === "app" ? info.app : null };
+      table = parsePartitionTable(await this.loader.readFlash(tableOffset, TABLE_SIZE));
+      if (table) running = await this.running(table);
     } catch {
-      running = null; // a blank or foreign unit: nothing to say, not an error
+      // a blank or foreign unit: nothing to say, not an error
     }
-    return { chip, mac, flashBytes, flashLabel, running };
+    return { chipName, chip, mac, flashBytes, flashLabel, table, running };
   }
 
-  async write(
-    writes: PlannedWrite[],
-    opts: { eraseAll: boolean; allowForeign: boolean; onProgress: (done: number, total: number) => void },
-  ): Promise<void> {
-    const info = await this.describe();
-    if (info.chip !== "ESP32-S3") throw new Error(`this is an ${info.chip}; a CANary is an ESP32-S3`);
-    const problems = checkPlan(writes, { flashBytes: info.flashBytes, allowForeign: opts.allowForeign });
+  private async running(table: Partition[]): Promise<DeviceInfo["running"]> {
+    let part = bootPartition(table);
+    const ota = otadataPartition(table);
+    if (ota) {
+      const slots = table.filter((p) => p.type === PART_APP && p.subtype >= SUB_OTA_0 && p.subtype < SUB_OTA_0 + 16).length;
+      const { slot, seq } = activeOtaSlot(await this.loader.readFlash(ota.offset, Math.min(ota.size, 0x2000)), slots);
+      if (seq !== null) part = otaSlot(table, slot) ?? part;
+    }
+    if (!part) return null;
+    const info = identify(await this.loader.readFlash(part.offset, 0x200));
+    return { partition: part.label, app: info.kind === "app" ? info.app : null };
+  }
+
+  async write(writes: PlannedWrite[], opts: WriteOptions): Promise<void> {
+    const info = await this.describe(opts.tableOffset);
+    const refused = unitProblems(info, { chip: opts.expectChip, minFlash: opts.minFlash });
+    if (refused.length) throw new Error(refused.join("; "));
+    const problems = checkPlan(writes, {
+      chip: info.chip!,
+      flashBytes: info.flashBytes,
+      projects: opts.projects,
+      unitTable: info.table,
+      tableOffset: opts.tableOffset,
+    });
     if (problems.length) throw new Error(problems.join("; "));
 
     const sizes = writes.map((w) => w.data.length);
@@ -75,9 +120,9 @@ export class Session {
     const before = (i: number) => sizes.slice(0, i).reduce((s, n) => s + n, 0);
     await this.loader.writeFlash({
       fileArray: writes.map((w) => ({ data: w.data, address: w.offset })),
-      // Never let esptool rewrite the bootloader header: the bundled images
-      // already carry the build's flash settings, and patching them would make
-      // the MD5 check compare against bytes nobody built.
+      // Never let esptool rewrite the bootloader header: a release already carries
+      // its build's flash settings, and patching them would make the MD5 check
+      // compare against bytes nobody built.
       flashMode: "keep",
       flashFreq: "keep",
       flashSize: "keep",
@@ -102,21 +147,4 @@ export class Session {
   async close(): Promise<void> {
     await this.transport.disconnect().catch(() => {});
   }
-}
-
-/**
- * A lone app image boots only if otadata points at the slot it went into.
- * When the plan writes an app to ota_0 and says nothing about otadata, add a
- * blank one — the bootloader reads that as "boot ota_0". Without it, a unit
- * that last updated over the air keeps booting ota_1 and the flash looks like
- * it did nothing.
- */
-export function withOtadataReset(writes: PlannedWrite[]): { writes: PlannedWrite[]; added: boolean } {
-  const hasApp0 = writes.some((w) => w.offset === OFFSETS.app);
-  const hasOtadata = writes.some((w) => w.offset === OFFSETS.otadata);
-  if (!hasApp0 || hasOtadata) return { writes, added: false };
-  return {
-    writes: [...writes, { name: "otadata (blank — boot ota_0)", offset: OFFSETS.otadata, data: new Uint8Array(0x2000).fill(0xff) }],
-    added: true,
-  };
 }

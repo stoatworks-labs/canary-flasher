@@ -1,28 +1,20 @@
 // Everything here is pure: bytes in, facts out. No Web Serial, no DOM — so the
 // checks that stop a wrong file reaching a unit are the ones the tests can reach.
 
+import { CHIPS, DEFAULT_TABLE_OFFSET, TABLE_SIZE, chipByImageId } from "./chips.ts";
+
 /** ESP-IDF image magic, byte 0 of every bootloader and app image. */
 export const IMAGE_MAGIC = 0xe9;
 /** `esp_app_desc_t.magic_word`, first word of an app's first segment. */
 export const APP_DESC_MAGIC = 0xabcd5432;
-/** `esp_chip_id_t` for the ESP32-S3, as the image's extended header carries it. */
-export const CHIP_ID_ESP32S3 = 9;
 /** Magic of each 32-byte entry in an ESP-IDF partition table. */
 export const PARTITION_MAGIC = 0x50aa;
 
-/** The offsets an ESP32-S3 ESP-IDF build flashes to. The bootloader sits at 0x0
- *  on the S3 (the classic ESP32 puts it at 0x1000). */
-export const OFFSETS = {
-  bootloader: 0x0,
-  partitionTable: 0x8000,
-  otadata: 0xf000,
-  app: 0x20000,
-} as const;
-
-export const CHIP_NAMES: Record<number, string> = {
-  0: "ESP32", 2: "ESP32-S2", 5: "ESP32-C3", 9: "ESP32-S3", 12: "ESP32-C2",
-  13: "ESP32-C6", 16: "ESP32-H2", 18: "ESP32-P4", 23: "ESP32-C5",
-};
+export const PART_APP = 0x00;
+export const PART_DATA = 0x01;
+export const SUB_FACTORY = 0x00;
+export const SUB_OTA_0 = 0x10;
+export const SUB_OTADATA = 0x00;
 
 export interface AppDescription {
   version: string;
@@ -32,13 +24,6 @@ export interface AppDescription {
   idfVersion: string;
 }
 
-export type ImageInfo =
-  | { kind: "app"; chipId: number; app: AppDescription }
-  | { kind: "bootloader"; chipId: number }
-  | { kind: "partition-table"; partitions: Partition[] }
-  | { kind: "otadata" }
-  | { kind: "unknown"; reason: string };
-
 export interface Partition {
   label: string;
   type: number;
@@ -47,13 +32,23 @@ export interface Partition {
   size: number;
 }
 
+export type ImageInfo =
+  | { kind: "app"; chipId: number; app: AppDescription }
+  | { kind: "bootloader"; chipId: number }
+  | { kind: "partition-table"; partitions: Partition[] }
+  | { kind: "otadata" }
+  /** A whole-flash image from 0x0 (esptool merge-bin, or a read-back): bootloader,
+   *  partition table and whatever partitions follow, in one file. */
+  | { kind: "merged"; chipId: number; partitions: Partition[] }
+  | { kind: "unknown"; reason: string };
+
 function cstr(bytes: Uint8Array, start: number, len: number): string {
   const slice = bytes.subarray(start, start + len);
   const end = slice.indexOf(0);
   return new TextDecoder().decode(end < 0 ? slice : slice.subarray(0, end));
 }
 
-function u32(b: Uint8Array, o: number): number {
+export function u32(b: Uint8Array, o: number): number {
   return (b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)) >>> 0;
 }
 
@@ -103,9 +98,28 @@ export function parsePartitionTable(b: Uint8Array): Partition[] | null {
   return out.length ? out : null;
 }
 
+/**
+ * A whole-flash image: the bootloader at its chip's offset and a partition table
+ * at 0x8000, in one file that starts at 0x0. Space below the bootloader (the first
+ * 4 or 8 KB on the chips that boot from 0x1000 or 0x2000) is padding.
+ */
+function asMerged(b: Uint8Array): ImageInfo | null {
+  if (b.length < DEFAULT_TABLE_OFFSET + 32 || u16(b, DEFAULT_TABLE_OFFSET) !== PARTITION_MAGIC) return null;
+  for (const at of new Set(CHIPS.map((c) => c.bootloader))) {
+    if (b.length < at + 24 || b[at] !== IMAGE_MAGIC) continue;
+    const chipId = imageChipId(b.subarray(at));
+    if (chipByImageId(chipId)?.bootloader !== at) continue;
+    const partitions = parsePartitionTable(b.subarray(DEFAULT_TABLE_OFFSET, DEFAULT_TABLE_OFFSET + TABLE_SIZE));
+    if (partitions) return { kind: "merged", chipId, partitions };
+  }
+  return null;
+}
+
 /** Work out what a file is from its bytes, never its name. */
 export function identify(b: Uint8Array): ImageInfo {
   if (b.length === 0) return { kind: "unknown", reason: "the file is empty" };
+  const merged = asMerged(b);
+  if (merged) return merged;
   if (b[0] === IMAGE_MAGIC && b.length >= 24) {
     const chipId = imageChipId(b);
     const app = readAppDescription(b);
@@ -117,74 +131,46 @@ export function identify(b: Uint8Array): ImageInfo {
   }
   // ota_data_initial.bin is two erased 4 KB sectors: all 0xFF, 8 KB long.
   if (b.length === 0x2000 && b.every((x) => x === 0xff)) return { kind: "otadata" };
-  return { kind: "unknown", reason: "not an ESP-IDF image, partition table or otadata file" };
+  return { kind: "unknown", reason: "not an ESP-IDF image, partition table, otadata or whole-flash image" };
 }
 
-/** Where a file of this kind goes. An app goes to the first app partition. */
-export function defaultOffset(info: ImageInfo): number | null {
+/** What a file is, in a few words, for a table on screen. */
+export function describeImage(info: ImageInfo): string {
+  const chip = (id: number) => chipByImageId(id)?.name ?? `chip id ${id}`;
   switch (info.kind) {
-    case "bootloader": return OFFSETS.bootloader;
-    case "partition-table": return OFFSETS.partitionTable;
-    case "otadata": return OFFSETS.otadata;
-    case "app": return OFFSETS.app;
-    default: return null;
+    case "app": return `${info.app.project} ${info.app.version} · ${chip(info.chipId)}`;
+    case "bootloader": return `bootloader · ${chip(info.chipId)}`;
+    case "partition-table": return info.partitions.map((p) => p.label).join(", ");
+    case "otadata": return "blank otadata";
+    case "merged": return `whole flash · ${chip(info.chipId)}`;
+    case "unknown": return "raw data";
   }
 }
 
-export interface PlannedWrite {
-  name: string;
-  offset: number;
-  data: Uint8Array;
+// ---------------------------------------------------------------- partitions
+
+/** The app partition the bootloader starts when otadata is blank: factory if
+ *  there is one, otherwise ota_0. */
+export function bootPartition(table: Partition[]): Partition | undefined {
+  const apps = table.filter((p) => p.type === PART_APP);
+  return apps.find((p) => p.subtype === SUB_FACTORY) ?? apps.find((p) => p.subtype === SUB_OTA_0) ?? apps[0];
 }
 
-/**
- * The ESP-IDF project names a CANary app carries: "canary" since the rename
- * (2026-09-27), "dbcanary" before it -- a unit's own older build is still ours.
- */
-export const APP_PROJECTS = ["canary", "dbcanary"];
+export function otadataPartition(table: Partition[]): Partition | undefined {
+  return table.find((p) => p.type === PART_DATA && p.subtype === SUB_OTADATA);
+}
 
-/**
- * Everything that must be true before a set of writes goes near a unit. Returns
- * the reasons it must not, empty when it may. `allowForeign` lets an app that is
- * not a CANary build through — a deliberate override, never a default.
- */
-export function checkPlan(
-  writes: PlannedWrite[],
-  opts: { flashBytes: number; allowForeign?: boolean },
-): string[] {
-  const problems: string[] = [];
-  if (writes.length === 0) problems.push("nothing to write");
-  const sorted = [...writes].sort((a, b) => a.offset - b.offset);
-  for (let i = 0; i < sorted.length; i++) {
-    const w = sorted[i];
-    if (w.offset % 0x1000 !== 0) {
-      problems.push(`${w.name}: offset 0x${w.offset.toString(16)} is not on a 4 KB sector boundary`);
-    }
-    if (w.offset + w.data.length > opts.flashBytes) {
-      problems.push(`${w.name}: runs past the end of flash`);
-    }
-    const next = sorted[i + 1];
-    if (next && w.offset + w.data.length > next.offset) {
-      problems.push(`${w.name} overlaps ${next.name}`);
-    }
-    const info = identify(w.data);
-    if (info.kind === "app" || info.kind === "bootloader") {
-      if (info.chipId !== CHIP_ID_ESP32S3) {
-        const chip = CHIP_NAMES[info.chipId] ?? `chip id ${info.chipId}`;
-        problems.push(`${w.name}: built for ${chip}, and a CANary is an ESP32-S3`);
-      }
-    }
-    if (info.kind === "app" && !APP_PROJECTS.includes(info.app.project) && !opts.allowForeign) {
-      problems.push(`${w.name}: this is "${info.app.project}", not a CANary build`);
-    }
-    if (info.kind === "bootloader" && w.offset !== OFFSETS.bootloader) {
-      problems.push(`${w.name}: a bootloader only boots from 0x0`);
-    }
-    if (info.kind === "app" && w.offset < OFFSETS.app) {
-      problems.push(`${w.name}: an app image below 0x${OFFSETS.app.toString(16)} would overwrite the bootloader or partition table`);
-    }
-  }
-  return problems;
+export function partitionAt(table: Partition[], offset: number): Partition | undefined {
+  return table.find((p) => p.offset === offset);
+}
+
+export function partitionContaining(table: Partition[], offset: number, length: number): Partition | undefined {
+  return table.find((p) => offset >= p.offset && offset + length <= p.offset + p.size);
+}
+
+/** The app partition ota_N, or undefined if the table has no such slot. */
+export function otaSlot(table: Partition[], n: number): Partition | undefined {
+  return table.find((p) => p.type === PART_APP && p.subtype === SUB_OTA_0 + n);
 }
 
 // esp_rom_crc32_le as the bootloader calls it on otadata: seeded with
@@ -202,9 +188,10 @@ function crc32le(seed: number, b: Uint8Array): number {
  * Which OTA slot the bootloader will pick, from the 8 KB otadata partition:
  * two sectors each holding an `esp_ota_select_entry_t` (seq u32, label[20],
  * state u32, crc u32). The valid entry with the higher sequence wins, and slot
- * = (seq - 1) mod 2. Blank or no valid entry means the factory choice, ota_0.
+ * = (seq - 1) mod (number of OTA slots). Blank or no valid entry means the
+ * factory choice: `seq` is null and the caller picks `bootPartition()`.
  */
-export function activeOtaSlot(otadata: Uint8Array): { slot: number; seq: number | null } {
+export function activeOtaSlot(otadata: Uint8Array, slots = 2): { slot: number; seq: number | null } {
   let best: number | null = null;
   for (const base of [0, 0x1000]) {
     if (otadata.length < base + 32) continue;
@@ -217,7 +204,7 @@ export function activeOtaSlot(otadata: Uint8Array): { slot: number; seq: number 
     if (state === 3 || state === 4) continue;
     if (best === null || seq > best) best = seq;
   }
-  return best === null ? { slot: 0, seq: null } : { slot: (best - 1) % 2, seq: best };
+  return best === null ? { slot: 0, seq: null } : { slot: (best - 1) % Math.max(slots, 1), seq: best };
 }
 
 /** Test hook: build a valid otadata entry, as esp_ota_set_boot_partition would. */
@@ -233,4 +220,21 @@ export function otadataEntry(seq: number, state = 2): Uint8Array {
 
 export function hex(n: number): string {
   return "0x" + n.toString(16).padStart(5, "0");
+}
+
+/**
+ * An offset as a person types it: "0x20000", "128K", "1M", or a partition label.
+ * Bare digits are refused: esptool reads "20000" as decimal and most people mean
+ * hex, and a write is the wrong place to guess which.
+ */
+export function parseOffset(text: string, table?: Partition[]): number | null {
+  const t = text.trim();
+  if (!t) return null;
+  const byLabel = table?.find((p) => p.label === t);
+  if (byLabel) return byLabel.offset;
+  let m = /^0x([0-9a-f]+)$/i.exec(t);
+  if (m) return parseInt(m[1], 16);
+  m = /^(\d+)\s*([KM])$/i.exec(t);
+  if (m) return Number(m[1]) * (m[2].toUpperCase() === "K" ? 1024 : 1024 * 1024);
+  return null;
 }

@@ -1,25 +1,29 @@
-// Bundle an ESP-IDF build of CANary into public/firmware/ and the manifest.
+// Bundle an ESP-IDF build into public/firmware/<device>/ and its manifest.
 //
-//   node scripts/import-firmware.ts --build <idf build dir> --release <id> \
-//        --variant <id> --name "<label>" --summary "<one line>" \
-//        [--commit <full sha>] [--date YYYY-MM-DD] [--recommended]
+//   node scripts/import-firmware.ts --device <id> --build <idf build dir> \
+//        --release <id> --variant <id> --name "<label>" --summary "<one line>" \
+//        [--commit <full sha>] [--date YYYY-MM-DD] [--tag vX.Y.Z] [--recommended] \
+//        [--after "<shown once it has rebooted>"] [--extra 0x1d0000=<file> ...]
 //
-// It reads the build's own flasher_args.json for what goes where, so an offset
-// is never typed by hand here. Every file is identified by its bytes and checked
-// with the same checkPlan() the page runs before it writes, so a bundle the page
-// would refuse cannot be committed in the first place.
+// It reads the build's own flasher_args.json for what goes where, so an offset is
+// never typed by hand here; --extra is for an image the build makes but does not
+// register for flashing. Every file is identified by its bytes and checked with the
+// same checkPlan() the page runs before it writes, so a bundle the page would
+// refuse cannot be committed in the first place. The device's definition is
+// copied in from devices/<id>.json each time, so that file is the one to edit.
 //
 // Node runs this TypeScript directly (type stripping); no build step.
 
-import { createHash } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { checkPlan, identify, OFFSETS } from "../src/image.ts";
-import { validateManifest, type Manifest, type Release, type Variant } from "../src/manifest.ts";
+import { describeImage, identify, partitionAt, type Partition } from "../src/image.ts";
+import { SCHEMA, validatePackage, type Package, type Release, type Variant } from "../src/package.ts";
+import { FW, readDevice, readIndex, releaseWrites, sha256 } from "./lib.ts";
 
 const { values: a } = parseArgs({
   options: {
+    device: { type: "string" },
     build: { type: "string" },
     release: { type: "string" },
     variant: { type: "string" },
@@ -27,90 +31,106 @@ const { values: a } = parseArgs({
     summary: { type: "string" },
     commit: { type: "string" },
     date: { type: "string" },
+    tag: { type: "string" },
+    after: { type: "string" },
     recommended: { type: "boolean", default: false },
+    extra: { type: "string", multiple: true, default: [] },
   },
 });
-for (const k of ["build", "release", "variant", "name", "summary"] as const) {
+for (const k of ["device", "build", "release", "variant", "name", "summary"] as const) {
   if (!a[k]) throw new Error(`--${k} is required`);
 }
 
-const root = resolve(dirname(new URL(import.meta.url).pathname), "..");
-const fwRoot = join(root, "public", "firmware");
-const manifestPath = join(fwRoot, "manifest.json");
+const device = readDevice(a.device!);
+const dir = join(FW, device.id);
+const manifestPath = join(dir, "manifest.json");
 const build = resolve(a.build!);
 
+/** "esp32s3" → "ESP32-S3", as esptool-js names the chip. */
+const chipName = (c: string) => (c.length > 5 ? `ESP32-${c.slice(5).toUpperCase()}` : c.toUpperCase());
+
 const args = JSON.parse(readFileSync(join(build, "flasher_args.json"), "utf8"));
-if (args.extra_esptool_args?.chip !== "esp32s3") {
-  throw new Error(`build is for ${args.extra_esptool_args?.chip}, not esp32s3`);
-}
-if (args.flash_settings?.flash_size !== "8MB") {
-  throw new Error(`build expects ${args.flash_settings?.flash_size} of flash; the WROOM-1-N8 has 8MB`);
+const built = chipName(args.extra_esptool_args?.chip ?? "?");
+if (built !== device.chip) throw new Error(`the build is for ${built}, and ${device.name} is an ${device.chip}`);
+const size = args.flash_settings?.flash_size as string | undefined;
+const sizeBytes = size && /^\d+MB$/.test(size) ? parseInt(size) * 1024 * 1024 : null;
+if (sizeBytes !== device.flashSize) throw new Error(`the build expects ${size} of flash, and ${device.name} has ${device.flashSize / 1024 / 1024}MB`);
+
+const files: { offset: number; src: string }[] = Object.entries(args.flash_files as Record<string, string>)
+  .map(([off, rel]) => ({ offset: Number(off), src: join(build, rel) }));
+for (const x of a.extra!) {
+  const m = /^(0x[0-9a-f]+)=(.+)$/i.exec(x);
+  if (!m) throw new Error(`--extra ${x}: want 0x<offset>=<file>`);
+  files.push({ offset: Number(m[1]), src: resolve(m[2]) });
 }
 
-const outDir = join(fwRoot, a.release!, a.variant!);
+const outDir = join(dir, a.release!, a.variant!);
 mkdirSync(outDir, { recursive: true });
 
-const partName: Record<string, string> = {
-  bootloader: "bootloader", "partition-table": "partition table", otadata: "otadata", app: "app",
-};
+const table: Partition[] = files.map((f) => identify(new Uint8Array(readFileSync(f.src))))
+  .flatMap((i) => (i.kind === "partition-table" ? i.partitions : []));
+const kindName: Record<string, string> = { bootloader: "bootloader", "partition-table": "partition table", otadata: "otadata", app: "app" };
 
 const parts: Variant["parts"] = [];
-const writes = [];
-for (const [off, rel] of Object.entries(args.flash_files as Record<string, string>)) {
-  const offset = Number(off);
-  const src = join(build, rel);
-  const data = new Uint8Array(readFileSync(src));
+let app: Variant["app"] | null = null;
+for (const f of files.sort((x, y) => x.offset - y.offset)) {
+  const data = new Uint8Array(readFileSync(f.src));
   const info = identify(data);
-  if (info.kind === "unknown") throw new Error(`${rel}: ${info.reason}`);
-  const file = basename(rel);
-  copyFileSync(src, join(outDir, file));
+  if (info.kind === "merged") throw new Error(`${f.src}: a whole-flash image; import the build's parts instead`);
+  if (info.kind === "app") {
+    if (app) throw new Error("the build flashes two apps; a variant holds one");
+    app = info.app;
+  }
+  const file = basename(f.src);
+  if (parts.some((p) => p.path.endsWith(`/${file}`))) throw new Error(`two files are called ${file}`);
+  copyFileSync(f.src, join(outDir, file));
   parts.push({
-    name: partName[info.kind],
-    offset,
+    name: kindName[info.kind] ?? partitionAt(table, f.offset)?.label ?? file,
+    offset: f.offset,
     path: `${a.release}/${a.variant}/${file}`,
     size: data.length,
-    sha256: createHash("sha256").update(data).digest("hex"),
+    sha256: sha256(data),
   });
-  writes.push({ name: file, offset, data });
+  console.log(`  ${file} @ 0x${f.offset.toString(16)}: ${describeImage(info)}`);
 }
-parts.sort((x, y) => x.offset - y.offset);
+if (!app) throw new Error("the build flashes no app image");
+if (!device.projects.includes(app.project)) throw new Error(`the app is "${app.project}", and ${device.id}'s projects are ${device.projects.join(", ")}`);
 
-const problems = checkPlan(writes, { flashBytes: 8 * 1024 * 1024 });
-if (problems.length) throw new Error("the page would refuse this bundle:\n  " + problems.join("\n  "));
-
-const appWrite = writes.find((w) => w.offset === OFFSETS.app)!;
-const appInfo = identify(appWrite.data);
-if (appInfo.kind !== "app") throw new Error("no app image at 0x20000");
-
-const manifest: Manifest = existsSync(manifestPath)
+const pkg: Package = existsSync(manifestPath)
   ? JSON.parse(readFileSync(manifestPath, "utf8"))
-  : { releases: [] };
+  : { schema: SCHEMA, device, releases: [] };
+pkg.schema = SCHEMA;
+pkg.device = device;
 
-let release: Release | undefined = manifest.releases.find((r) => r.id === a.release);
+let release: Release | undefined = pkg.releases.find((r) => r.id === a.release);
 if (!release) {
-  release = {
-    id: a.release!,
-    date: a.date ?? new Date().toISOString().slice(0, 10),
-    commit: a.commit ?? "",
-    variants: [],
-  };
-  manifest.releases.unshift(release);
+  release = { id: a.release!, date: a.date ?? new Date().toISOString().slice(0, 10), commit: a.commit ?? "", variants: [] };
+  pkg.releases.unshift(release);
 }
 if (a.commit) release.commit = a.commit;
 if (a.date) release.date = a.date;
+if (a.tag) release.tag = a.tag;
 
 const variant: Variant = {
   id: a.variant!,
   name: a.name!,
   summary: a.summary!,
   recommended: a.recommended || undefined,
-  app: appInfo.app,
+  after: a.after || undefined,
+  app,
   parts,
 };
 const i = release.variants.findIndex((v) => v.id === variant.id);
 if (i >= 0) release.variants[i] = variant; else release.variants.push(variant);
 
-const errors = validateManifest(manifest);
+const errors = validatePackage(pkg);
 if (errors.length) throw new Error("manifest invalid:\n  " + errors.join("\n  "));
-writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
-console.log(`${a.release}/${a.variant}: ${parts.map((p) => `${p.name}@0x${p.offset.toString(16)}`).join(" ")} (app ${appInfo.app.version})`);
+releaseWrites(pkg, release, dir); // re-reads every part and runs checkPlan() on each variant
+writeFileSync(manifestPath, JSON.stringify(pkg, null, 2) + "\n");
+
+const index = readIndex();
+if (!index.devices.includes(device.id)) {
+  index.devices.push(device.id);
+  writeFileSync(join(FW, "index.json"), JSON.stringify(index, null, 2) + "\n");
+}
+console.log(`${device.id} ${a.release}/${a.variant}: ${parts.length} parts, app ${app.project} ${app.version}`);
