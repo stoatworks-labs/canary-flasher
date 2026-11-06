@@ -10,12 +10,12 @@
   "usb": [{ "vendorId": 12346, "productId": 4097, "label": "USB JTAG/serial debug unit" }],
   "connect": [
     "Plug Cuckoo's USB-C into this computer. That powers it too.",
-    "Press Connect and pick USB JTAG/serial debug unit (Espressif, 303a:1001)."
+    "Connect, and pick USB JTAG/serial debug unit (Espressif, 303a:1001)."
   ],
   "bootMode": [
     "Unplug the USB-C.",
     "Hold TP7 (ESP_BOOT, GPIO9) to ground and plug the USB-C back in.",
-    "Let go of TP7 and press Connect."
+    "Let go of TP7 and connect."
   ],
   "keeps": "its Wi-Fi password"
 }

@@ -43,9 +43,11 @@ const device = readDevice(a.device!);
 const dir = join(FW, device.id);
 const manifestPath = join(dir, "manifest.json");
 
-// Without --build: change a bundled release's tag, date or commit, and copy in the
-// device's definition again, without touching its images.
+// Without --build: change a bundled release's tag, date or commit, or a variant's
+// --name, --summary or --after (with --variant), and copy in the device's
+// definition again, without touching its images.
 //   node scripts/import-firmware.ts --device <id> --release <id> [--tag vX.Y.Z] [--date …] [--commit …]
+//        [--variant <id> [--name …] [--summary …] [--after …]]
 if (!a.build) {
   if (!existsSync(manifestPath)) throw new Error(`${device.id} has no bundled releases`);
   const pkg: Package = JSON.parse(readFileSync(manifestPath, "utf8"));
@@ -55,6 +57,13 @@ if (!a.build) {
   if (a.tag) release.tag = a.tag;
   if (a.date) release.date = a.date;
   if (a.commit) release.commit = a.commit;
+  if (a.variant) {
+    const v = release.variants.find((x) => x.id === a.variant);
+    if (!v) throw new Error(`${release.id} has no variant ${a.variant}`);
+    if (a.name) v.name = a.name;
+    if (a.summary) v.summary = a.summary;
+    if (a.after !== undefined) v.after = a.after || undefined;
+  }
   const errors = validatePackage(pkg);
   if (errors.length) throw new Error("manifest invalid:\n  " + errors.join("\n  "));
   for (const r of pkg.releases) releaseWrites(pkg, r, dir);
