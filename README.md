@@ -7,8 +7,8 @@
 # Stoatworks Flasher
 
 A static web page that puts firmware on our hardware over USB, straight from a browser tab: the
-[CANary](https://stoatworks-labs.com/hardware/canary/), [nanODE](https://stoatworks-labs.com/hardware/nanode/)
-and [Cuckoo](https://stoatworks-labs.com/hardware/cuckoo/). It'll also put an image of your own on any
+[CANary](https://stoatworks-labs.com/hardware/canary/), [nanODE](https://stoatworks-labs.com/hardware/lighting/#nanode)
+and [Cuckoo](https://stoatworks-labs.com/hardware/video/#cuckoo). It'll also put an image of your own on any
 ESP32 board. You don't need to install a toolchain, a driver or Python first.
 
 It's live at **<https://flasher.stoatworks-labs.com>**. It needs Web Serial, which means desktop Chrome,
@@ -24,7 +24,7 @@ There's more on [its page at stoatworks-labs.com](https://stoatworks-labs.com/we
 | **Flash our firmware** | Pick a device, a release and a variant. Every part is checked against its published SHA-256 before it is shown. |
 | **Flash your own file** | A release zip you downloaded earlier; a whole-flash image (esptool `merge-bin`, or one of the `.bin` downloads), which goes at 0x0; or the parts of an ESP-IDF build. Each file is identified by its **contents**, not its name, and put where its kind belongs. Anything it can't identify, a filesystem image say, waits for an offset you type (`0x3E0000`, `1M`, or a partition's name). A lone app gets a blank otadata written beside it, so the board boots what you just wrote rather than whatever it last updated to over the air. |
 | **Say what the board is running** | On connect it reads the chip, MAC and flash size, the partition table, otadata and the booting app's descriptor, so you see the version before you overwrite it. A board running one of our devices' firmware picks that device for you. |
-| **Downloads** | Every release is a **release zip** (its manifest and parts, which this page and Burrow both read) and a **whole-flash `.bin`** per variant. Download once, then reopen the file here, or write the `.bin` at 0x0 with esptool or Espressif's own tool. The links go to each device's GitHub release, pinned to its tag, with a copy on this site. |
+| **Downloads** | Every release is a **release zip** (its manifest and parts, which this page and Burrow both read) and a **whole-flash `.bin`** per variant. Download once, then reopen the file here, or write the `.bin` at 0x0 with esptool or Espressif's own tool (which writes the blank settings partition too, so the board forgets its settings; this page writes only the parts). The links go to each device's GitHub release, pinned to its tag, with a copy on this site. |
 | **Serial console** | Watch the board boot after flashing. |
 
 ## What it refuses

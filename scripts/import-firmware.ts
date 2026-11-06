@@ -37,13 +37,35 @@ const { values: a } = parseArgs({
     extra: { type: "string", multiple: true, default: [] },
   },
 });
-for (const k of ["device", "build", "release", "variant", "name", "summary"] as const) {
-  if (!a[k]) throw new Error(`--${k} is required`);
-}
+if (!a.device || !a.release) throw new Error("--device and --release are required");
 
 const device = readDevice(a.device!);
 const dir = join(FW, device.id);
 const manifestPath = join(dir, "manifest.json");
+
+// Without --build: change a bundled release's tag, date or commit, and copy in the
+// device's definition again, without touching its images.
+//   node scripts/import-firmware.ts --device <id> --release <id> [--tag vX.Y.Z] [--date …] [--commit …]
+if (!a.build) {
+  if (!existsSync(manifestPath)) throw new Error(`${device.id} has no bundled releases`);
+  const pkg: Package = JSON.parse(readFileSync(manifestPath, "utf8"));
+  const release = pkg.releases.find((r) => r.id === a.release);
+  if (!release) throw new Error(`${device.id} has no release ${a.release}`);
+  pkg.device = device;
+  if (a.tag) release.tag = a.tag;
+  if (a.date) release.date = a.date;
+  if (a.commit) release.commit = a.commit;
+  const errors = validatePackage(pkg);
+  if (errors.length) throw new Error("manifest invalid:\n  " + errors.join("\n  "));
+  for (const r of pkg.releases) releaseWrites(pkg, r, dir);
+  writeFileSync(manifestPath, JSON.stringify(pkg, null, 2) + "\n");
+  console.log(`${device.id} ${release.id}: tag ${release.tag ?? "none"}, ${release.date}, ${release.commit.slice(0, 7)}`);
+  process.exit(0);
+}
+
+for (const k of ["variant", "name", "summary"] as const) {
+  if (!a[k]) throw new Error(`--${k} is required with --build`);
+}
 const build = resolve(a.build!);
 
 /** "esp32s3" → "ESP32-S3", as esptool-js names the chip. */

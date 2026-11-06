@@ -52,7 +52,11 @@ node scripts/export-release.ts --device <id> [--release main-<sha>] --out <dir>
 gh release create v<x.y.z> -R <device repo> <dir>/*
 ```
 
-The tag must be the `--tag` the release was imported with. Check every asset's `digest` from
+The tag must be the release's `tag` in the manifest. To set one on a release that is already
+bundled, or to copy in an edited `devices/<id>.json`, run the importer without `--build`:
+`node scripts/import-firmware.ts --device <id> --release main-<sha> --tag v<x.y.z>`. A release
+asset can't be replaced in place (Burrow's catalogue holds its sha256), so a repackaged release
+gets a new tag. Check every asset's `digest` from
 `gh api repos/<repo>/releases/tags/<tag>` against the sha256 the script prints, then
 gen-downloads and gen-catalog-data in stoatworks-backend for the website and Burrow.
 

@@ -5,7 +5,7 @@
   "flashSize": 8388608,
   "projects": ["nanode"],
   "repo": "stoatworks-labs/nanode-firmware",
-  "page": "https://stoatworks-labs.com/hardware/nanode/",
+  "page": "https://stoatworks-labs.com/hardware/lighting/#nanode",
   "status": "Builds clean and passes its host tests. It has never run on a board, because no nanODE has been built yet.",
   "baud": 460800,
   "connect": [

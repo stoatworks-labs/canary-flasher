@@ -125,7 +125,8 @@
           ],
           "after": "In 8 s its USB-C port becomes a network adapter. The settings page is at http://192.168.7.1/."
         }
-      ]
+      ],
+      "tag": "v0.2.1"
     },
     {
       "id": "main-60a871f",

@@ -173,7 +173,8 @@
     <p class="hint">Keep a copy so you don't need to download it each time. Open a release <b>zip</b> here later
       under <i>Your own file</i>, or Burrow reads it too. Each <b>.bin</b> is the whole flash for one variant:
       write it at <code>0x0</code> with this page, esptool (<code>esptool.py write_flash 0x0 &lt;file&gt;</code>) or
-      Espressif's own flash tool.</p>
+      Espressif's own flash tool. esptool writes every byte of it, blank settings included, so the board forgets
+      its settings; this page writes only the parts and leaves them be.</p>
     <div id="downloads"></div>
   </section>
 

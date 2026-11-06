@@ -9,7 +9,7 @@
       "cuckoo_ui"
     ],
     "repo": "stoatworks-labs/cuckoo-firmware",
-    "page": "https://stoatworks-labs.com/hardware/cuckoo/",
+    "page": "https://stoatworks-labs.com/hardware/video/#cuckoo",
     "status": "The ESP32-C3 image has run on one board. The RP2354A images it carries have not run yet.",
     "usb": [
       {
