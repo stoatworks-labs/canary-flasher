@@ -376,6 +376,16 @@ describe("release downloads", () => {
     a.forEach((f, i) => expect(Buffer.from(f.data).equals(Buffer.from(b[i].data))).toBe(true));
   });
 
+  // The GitHub release assets are exported on a laptop and the /downloads/ mirror is
+  // built by CI, and both must be the same bytes. node:zlib broke that (Node 22 and 26
+  // deflate differently). If this hash moves, the compressor has changed: every
+  // published zip would stop matching its mirror, so pin it back rather than update it.
+  it("deflate to the same bytes on any machine", () => {
+    const data = new Uint8Array(70000).map((_, i) => (i * 2654435761) >>> 24 & (i % 7 ? 0xff : 0x0f));
+    const z = zip([{ name: "manifest.json", data: new TextEncoder().encode('{"schema":2}') }, { name: "a/b.bin", data }], "2026-11-06");
+    expect(createHash("sha256").update(z).digest("hex")).toBe("eaac2dad7acd2e1847e24163e780a4ba31dd69917768454f32a0f67848efab8d");
+  });
+
   it("use only store and deflate, with no flags, as Burrow's extractor needs", async () => {
     const z = releaseDownloads("canary").files[0].data;
     const names = (await readZip(z)).map((e) => e.name);

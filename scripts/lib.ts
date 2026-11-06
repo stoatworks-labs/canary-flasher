@@ -5,7 +5,8 @@ import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { deflateRawSync, crc32 } from "node:zlib";
+import { crc32 } from "node:zlib";
+import { deflateSync } from "fflate";
 import { mergedName, validateDevice, validatePackage, zipName, deviceChip, type BundleIndex, type DeviceDef, type Package, type Release } from "../src/package.ts";
 import { checkPlan, mergeParts, type PlannedWrite } from "../src/plan.ts";
 
@@ -66,6 +67,9 @@ export interface ZipEntry {
 /**
  * A zip of `entries` in order, all dated `date` (YYYY-MM-DD) so a re-export is the
  * same file. Each entry is deflated, or stored where deflate would not shrink it.
+ * The deflate is fflate's, pinned in package.json, not node:zlib's: Node 22 and
+ * Node 26 deflate the same input to different bytes, so a zip made on a laptop
+ * and the one CI mirrors would have different sha256s.
  * Nothing else: no zip64, no data descriptors, no directory entries, so the
  * plainest extractor reads it.
  */
@@ -77,7 +81,7 @@ export function zip(entries: ZipEntry[], date: string): Uint8Array {
   let offset = 0;
   for (const e of entries) {
     const name = new TextEncoder().encode(e.name);
-    const deflated = new Uint8Array(deflateRawSync(e.data, { level: 9 }));
+    const deflated = deflateSync(e.data, { level: 9, mem: 12 });
     const method = deflated.length < e.data.length ? 8 : 0;
     const body = method === 8 ? deflated : e.data;
     const crc = crc32(e.data) >>> 0;

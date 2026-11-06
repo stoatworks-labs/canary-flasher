@@ -50,8 +50,9 @@ test/             vitest, against the real bundled images
   layout, not for whose it is. Overwriting different firmware than the unit runs needs a tick.
 - **Flash mode, frequency and size are always `keep`.** Letting esptool patch the bootloader
   header would make the MD5 verify compare against bytes nobody built.
-- **Downloads are the same bytes every time.** The zip writer pins its dates and order, and the
-  test suite checks it. A GitHub asset's digest must match a fresh export; if it doesn't, the
+- **Downloads are the same bytes every time, on every machine.** The zip writer pins its dates,
+  its order and its compressor (fflate at an exact version: node:zlib deflates differently on
+  Node 22 and 26), and a golden hash in the tests catches a change. A GitHub asset's digest must match a fresh export; if it doesn't, the
   release was re-cut and Burrow's catalogue sha256 is wrong.
 - **Firmware URLs are pinned to the release tag**, never latest/download.
 
