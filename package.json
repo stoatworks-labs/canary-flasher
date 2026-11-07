@@ -16,7 +16,7 @@
     "export-release": "node scripts/export-release.ts"
   },
   "dependencies": {
-    "esptool-js": "^0.7.0"
+    "esptool-js": "^0.7.1"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
